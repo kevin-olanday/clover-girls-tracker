@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ShoppingBag, Plus, Pencil, Trash2, ExternalLink, Check, Circle, Filter, Search, LayoutList, LayoutGrid } from 'lucide-react';
+import { ShoppingBag, Plus, Pencil, Trash2, ExternalLink, Check, Circle, Search, LayoutList, LayoutGrid, RotateCcw } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import ProgressBar from '@/components/ProgressBar';
 import ExpenseModal from '@/components/ExpenseModal';
@@ -33,6 +33,7 @@ export default function Expenses({
   const [filterType, setFilterType] = useState('all');
   const [filterEvent, setFilterEvent] = useState('all');
   const [filterPurchased, setFilterPurchased] = useState('all');
+  const [filterCostType, setFilterCostType] = useState<'all' | 'supplies' | 'venue'>('all');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
@@ -48,20 +49,55 @@ export default function Expenses({
     return Array.from(s).sort();
   }, [expenses]);
 
+  const projectedExpenseValue = (expense: Expense) =>
+    expense.is_purchased ? (expense.actual_cost || expense.estimated_cost || 0) : (expense.estimated_cost || 0);
+
   const filtered = expenses.filter((e) => {
+    const isVenueCost = Boolean(e.venue_id);
     if (filterType !== 'all' && e.item_type !== filterType) return false;
     if (filterEvent !== 'all' && e.event_id !== filterEvent) return false;
     if (filterPurchased === 'purchased' && !e.is_purchased) return false;
     if (filterPurchased === 'pending' && e.is_purchased) return false;
-    if (search && !e.description.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterCostType === 'venue' && !isVenueCost) return false;
+    if (filterCostType === 'supplies' && isVenueCost) return false;
+    const searchText = `${e.description} ${e.item_type || ''} ${e.notes || ''} ${e.event_id ? eventMap.get(e.event_id) || '' : ''}`.toLowerCase();
+    if (search && !searchText.includes(search.toLowerCase())) return false;
     return true;
   });
 
   const totalEstimated = expenses.reduce((s, e) => s + (e.estimated_cost || 0), 0);
-  const totalActual = expenses.reduce((s, e) => s + (e.actual_cost || 0), 0);
-  const variance = totalActual - totalEstimated;
   const purchasedCount = expenses.filter((e) => e.is_purchased).length;
   const unpurchasedCount = expenses.length - purchasedCount;
+  const purchasedActual = expenses.filter((e) => e.is_purchased).reduce((s, e) => s + (e.actual_cost || e.estimated_cost || 0), 0);
+  const remainingEstimated = expenses.filter((e) => !e.is_purchased).reduce((s, e) => s + (e.estimated_cost || 0), 0);
+  const projectedTotal = purchasedActual + remainingEstimated;
+  const variance = projectedTotal - totalEstimated;
+  const filteredEstimated = filtered.reduce((sum, expense) => sum + (expense.estimated_cost || 0), 0);
+  const filteredPurchasedActual = filtered.filter((expense) => expense.is_purchased).reduce((sum, expense) => sum + projectedExpenseValue(expense), 0);
+  const filteredRemainingEstimated = filtered.filter((expense) => !expense.is_purchased).reduce((sum, expense) => sum + (expense.estimated_cost || 0), 0);
+  const filteredProjectedTotal = filteredPurchasedActual + filteredRemainingEstimated;
+  const venueExpenses = filtered.filter((e) => Boolean(e.venue_id));
+  const supplyExpenses = filtered.filter((e) => !e.venue_id);
+  const hasActiveFilters = filterType !== 'all' || filterEvent !== 'all' || filterCostType !== 'all' || filterPurchased !== 'all' || Boolean(search);
+  const venueExpenseTotal = venueExpenses.reduce((s, e) => s + projectedExpenseValue(e), 0);
+  const supplyExpenseTotal = supplyExpenses.reduce((s, e) => s + projectedExpenseValue(e), 0);
+
+  const categoryTotals = useMemo(() => {
+    const map = new Map<string, { estimated: number; paid: number; remaining: number }>();
+    filtered.forEach((expense) => {
+      const category = expense.item_type?.trim() || 'Uncategorized';
+      const current = map.get(category) || { estimated: 0, paid: 0, remaining: 0 };
+      const estimated = expense.estimated_cost || 0;
+      map.set(category, {
+        estimated: current.estimated + estimated,
+        paid: current.paid + (expense.is_purchased ? (expense.actual_cost || estimated) : 0),
+        remaining: current.remaining + (!expense.is_purchased ? estimated : 0),
+      });
+    });
+    return Array.from(map.entries()).sort(([, first], [, second]) =>
+      (second.paid + second.remaining) - (first.paid + first.remaining),
+    );
+  }, [filtered]);
 
   // Totals grouped by event
   const eventTotals = useMemo(() => {
@@ -103,15 +139,15 @@ export default function Expenses({
         {/* Budget variance */}
         <div className="card p-4 sm:col-span-2">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-slatey-600">Budget Variance</h3>
+            <h3 className="text-sm font-semibold text-slatey-600">Projected Budget Variance</h3>
             <span className={`pill ${variance > 0 ? 'bg-coral-100 text-coral-600' : variance < 0 ? 'bg-emeraldx-100 text-emeraldx-600' : 'bg-cream-100 text-slatey-500'}`}>
               {variance > 0 ? '+' : ''}{formatCurrency(variance)}
             </span>
           </div>
-          <ProgressBar value={totalActual} max={Math.max(totalEstimated, totalActual, 1)} showValue={false} color={variance > 0 ? 'coral' : 'sage'} size="sm" />
+          <ProgressBar value={projectedTotal} max={Math.max(totalEstimated, projectedTotal, 1)} showValue={false} color={variance > 0 ? 'coral' : 'sage'} size="sm" />
           <div className="flex items-center justify-between mt-2 text-xs text-slatey-400">
-            <span>Estimated: {formatCurrency(totalEstimated)}</span>
-            <span>Actual: {formatCurrency(totalActual)}</span>
+            <span>Planned: {formatCurrency(totalEstimated)}</span>
+            <span>Projected: {formatCurrency(projectedTotal)}</span>
           </div>
         </div>
 
@@ -127,6 +163,81 @@ export default function Expenses({
             {expenses.length > 0 ? Math.round((purchasedCount / expenses.length) * 100) : 0}%
           </p>
         </div>
+      </div>
+
+      <div className="card p-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-sm font-semibold text-slatey-600">Expense Breakdown</h3>
+            <p className="text-xs text-slatey-400 mt-0.5">
+              {hasActiveFilters ? 'Showing the current filtered items.' : 'Paid costs plus estimates for items still to buy.'}
+            </p>
+          </div>
+          <span className="pill bg-sage-50 text-sage-600">{formatCurrency(filteredProjectedTotal)} projected</span>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          <div className="rounded-xl bg-cream-50 px-3 py-2">
+            <p className="text-xs text-slatey-400">Planned budget</p>
+            <p className="text-sm font-bold text-slatey-700">{formatCurrency(filteredEstimated)}</p>
+          </div>
+          <div className="rounded-xl bg-emeraldx-50 px-3 py-2">
+            <p className="text-xs text-slatey-400">Paid / bought</p>
+            <p className="text-sm font-bold text-emeraldx-600">{formatCurrency(filteredPurchasedActual)}</p>
+          </div>
+          <div className="rounded-xl bg-amber-50 px-3 py-2">
+            <p className="text-xs text-slatey-400">Still to buy</p>
+            <p className="text-sm font-bold text-amber-600">{formatCurrency(filteredRemainingEstimated)}</p>
+          </div>
+          <div className="rounded-xl bg-sage-50 px-3 py-2">
+            <p className="text-xs text-slatey-400">Projected total</p>
+            <p className="text-sm font-bold text-sage-600">{formatCurrency(filteredProjectedTotal)}</p>
+          </div>
+        </div>
+        {categoryTotals.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-slatey-400 border-b border-cream-200">
+                  <th className="text-left pb-2 font-medium">Category</th>
+                  <th className="text-right pb-2 font-medium">Planned</th>
+                  <th className="text-right pb-2 font-medium">Paid</th>
+                  <th className="text-right pb-2 font-medium">Remaining</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-cream-100">
+                {categoryTotals.map(([category, totals]) => (
+                  <tr key={category} className="hover:bg-cream-50 transition-colors">
+                    <td className="py-2 font-medium text-slatey-700">{category}</td>
+                    <td className="py-2 text-right text-slatey-500">{formatCurrency(totals.estimated)}</td>
+                    <td className="py-2 text-right text-emeraldx-600">{formatCurrency(totals.paid)}</td>
+                    <td className="py-2 text-right text-amber-600">{formatCurrency(totals.remaining)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => setFilterCostType(filterCostType === 'supplies' ? 'all' : 'supplies')}
+          className={`card p-4 text-left transition ${filterCostType === 'supplies' ? 'ring-2 ring-sage-300' : 'hover:shadow-soft-md'}`}
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400">Supplies</p>
+          <p className="mt-1 text-lg font-bold text-sage-600">{formatCurrency(supplyExpenseTotal)}</p>
+          <p className="mt-0.5 text-xs text-slatey-400">Materials, food, marketing, and other non-venue items</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilterCostType(filterCostType === 'venue' ? 'all' : 'venue')}
+          className={`card p-4 text-left transition ${filterCostType === 'venue' ? 'ring-2 ring-coral-300' : 'hover:shadow-soft-md'}`}
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400">Venue expense records</p>
+          <p className="mt-1 text-lg font-bold text-coral-500">{formatCurrency(venueExpenseTotal)}</p>
+          <p className="mt-0.5 text-xs text-slatey-400">Deposits and venue charges in the Expenses ledger</p>
+        </button>
       </div>
 
       {/* Event totals */}
@@ -166,7 +277,7 @@ export default function Expenses({
       )}
 
       {/* Search + filters + view toggle */}
-      <div className="space-y-2">
+      <div className="space-y-2 sm:sticky sm:top-20 sm:z-10 sm:rounded-2xl sm:bg-cream-50/95 sm:py-2 sm:backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slatey-300 pointer-events-none" />
@@ -195,6 +306,37 @@ export default function Expenses({
             </button>
           </div>
         </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+          {[
+            { key: 'all', label: 'All', count: expenses.length },
+            { key: 'pending', label: 'To Buy', count: unpurchasedCount },
+            { key: 'purchased', label: 'Bought', count: purchasedCount },
+          ].map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => setFilterPurchased(option.key)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${filterPurchased === option.key ? 'bg-sage-100 text-sage-700 ring-1 ring-sage-300' : 'bg-white text-slatey-400 hover:bg-cream-100'}`}
+            >
+              {option.label} <span className="opacity-70">{option.count}</span>
+            </button>
+          ))}
+          {(filterType !== 'all' || filterEvent !== 'all' || filterCostType !== 'all' || filterPurchased !== 'all' || search) && (
+            <button
+              type="button"
+              onClick={() => {
+                setFilterType('all');
+                setFilterEvent('all');
+                setFilterCostType('all');
+                setFilterPurchased('all');
+                setSearch('');
+              }}
+              className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold text-coral-500 hover:bg-coral-50"
+            >
+              <RotateCcw size={12} /> Clear
+            </button>
+          )}
+        </div>
         {(types.length > 0 || events.length > 0) && (
           <div className="flex gap-2 flex-wrap">
             {types.length > 0 && (
@@ -209,6 +351,15 @@ export default function Expenses({
                 {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
               </select>
             )}
+            <select
+              className="input py-2 text-sm flex-1 min-w-[140px]"
+              value={filterCostType}
+              onChange={(e) => setFilterCostType(e.target.value as 'all' | 'supplies' | 'venue')}
+            >
+              <option value="all">All Cost Types</option>
+              <option value="supplies">Supplies only</option>
+              <option value="venue">Venue expenses only</option>
+            </select>
             <select
               className="input py-2 text-sm flex-1 min-w-[140px]"
               value={filterPurchased}

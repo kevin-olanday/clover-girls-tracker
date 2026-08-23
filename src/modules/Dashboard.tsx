@@ -20,11 +20,15 @@ interface DashboardProps {
 export default function Dashboard({ events, expenses, venues, income }: DashboardProps) {
   const totalRevenue = events.reduce((sum, e) => sum + calcEvent(e).entranceRevenue, 0);
   const totalExpenseCosts = expenses.reduce(
-    (sum, e) => sum + (e.actual_cost || e.estimated_cost || 0),
+    (sum, e) => sum + (e.is_purchased ? (e.actual_cost || e.estimated_cost || 0) : (e.estimated_cost || 0)),
     0
   );
-  const totalVenueRental = venues.reduce((sum, v) => sum + (v.rental_fee || 0), 0);
-  const totalExpenses = totalExpenseCosts + totalVenueRental;
+  const totalVenueRental = expenses.filter((expense) => Boolean(expense.venue_id)).reduce(
+    (sum, expense) => sum + (expense.is_purchased ? (expense.actual_cost || expense.estimated_cost || 0) : (expense.estimated_cost || 0)),
+    0,
+  );
+  const totalExpenses = totalExpenseCosts;
+  const totalSupplyExpenses = totalExpenseCosts - totalVenueRental;
   const netProfit = totalRevenue - totalExpenses;
   const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
@@ -33,7 +37,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
   const fillRate = totalCapacity > 0 ? (totalRegistered / totalCapacity) * 100 : 0;
 
   const totalEstimated = expenses.reduce((sum, e) => sum + (e.estimated_cost || 0), 0);
-  const totalActual = expenses.reduce((sum, e) => sum + (e.actual_cost || 0), 0);
+  const totalActual = expenses.reduce((sum, e) => sum + (e.is_purchased ? (e.actual_cost || e.estimated_cost || 0) : 0), 0);
   const budgetVariance = totalActual - totalEstimated;
 
   const upcomingEvents = events
@@ -59,6 +63,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
 
   const profitPerFounder = netProfit / 3;
   const [showProfitSplit, setShowProfitSplit] = useState(false);
+  const [showExpenseBreakdown, setShowExpenseBreakdown] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string } | null>(null);
   const { language } = useLanguage();
 
@@ -103,15 +108,45 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           language={language}
           tooltip={{ english: 'Money collected from all event registration payments.', tagalog: 'Kabuuang perang nakolekta mula sa bayad sa pagpaparehistro ng mga event.' }}
         />
-        <KPICard
-          label={language === 'tl' ? 'Kabuuang Gastos' : 'Total Expenses'}
-          value={formatCurrency(totalExpenses)}
-          sublabel={language === 'tl' ? 'Mga binili at upa sa venue' : 'Procurement + venue rentals'}
-          icon={<TrendingDown size={22} />}
-          accent="coral"
-          language={language}
-          tooltip={{ english: 'Total money spent on supplies, purchases, and venue rentals.', tagalog: 'Kabuuang perang ginastos sa mga gamit, binili, at upa sa venue.' }}
-        />
+        <div className="relative">
+          <KPICard
+            label={language === 'tl' ? 'Kabuuang Gastos' : 'Total Expenses'}
+            value={formatCurrency(totalExpenses)}
+            sublabel={language === 'tl' ? 'Mga binili at upa sa venue' : 'Procurement + venue rentals'}
+            icon={<TrendingDown size={22} />}
+            accent="coral"
+            language={language}
+            expanded={showExpenseBreakdown}
+            onClick={() => setShowExpenseBreakdown((open) => !open)}
+            tooltip={{ english: 'Click to see the Expenses ledger total plus venue booking rentals.', tagalog: 'I-click para makita ang kabuuan ng Expenses at mga upa sa venue.' }}
+          />
+          {showExpenseBreakdown && (
+            <div className="absolute right-0 top-full z-20 mt-2 w-[min(380px,calc(100vw-2rem))] rounded-2xl border border-cream-200 bg-white p-4 shadow-soft-md sm:left-0 sm:right-auto">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400">
+                {language === 'tl' ? 'Paano kinukuwenta' : 'How it is calculated'}
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slatey-500">{language === 'tl' ? 'Mga gamit at ibang gastos' : 'Supplies & other expenses'}</span>
+                  <span className="font-semibold text-slatey-700">{formatCurrency(totalSupplyExpenses)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slatey-500">{language === 'tl' ? 'Upa sa venue' : 'Venue rental expense'}</span>
+                  <span className="font-semibold text-slatey-700">{formatCurrency(totalVenueRental)}</span>
+                </div>
+                <div className="border-t border-cream-200 pt-2 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                  <span className="font-semibold text-slatey-700">Total</span>
+                  <span className="font-bold text-coral-500 break-words">{formatCurrency(totalSupplyExpenses)} + {formatCurrency(totalVenueRental)} = {formatCurrency(totalExpenses)}</span>
+                </div>
+              </div>
+              <p className="mt-3 text-xs leading-4 text-slatey-400">
+                {language === 'tl'
+                  ? 'Bawat venue rental ay naka-link sa isang venue at isang beses lang binibilang.'
+                  : 'Each venue rental is linked to one venue and counted once.'}
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Net Profit — click to reveal per-founder split */}
         <div className="relative">

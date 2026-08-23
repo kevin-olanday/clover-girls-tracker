@@ -95,8 +95,45 @@ export function useMutations(reload: () => void, createdByName?: string | null) 
     (v: Partial<Venue>, id?: string) =>
       wrap(async () => {
         if (!supabase) return;
-        if (id) return supabase.from('venues').update(v).eq('id', id);
-        return supabase.from('venues').insert({ ...v, created_by_name: byRef.current || null });
+        const venuePayload = { ...v, created_by_name: byRef.current || null };
+        let venueId = id;
+
+        if (id) {
+          const { error } = await supabase.from('venues').update(venuePayload).eq('id', id);
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabase
+            .from('venues')
+            .insert(venuePayload)
+            .select('id')
+            .single();
+          if (error || !data) throw error || new Error('Venue was not created');
+          venueId = (data as { id: string }).id;
+        }
+
+        if (!venueId) throw new Error('Venue id is missing');
+        const rentalPayload = {
+          venue_id: venueId,
+          description: `${v.name || 'Venue'} rental`,
+          priority: 'High',
+          estimated_cost: Number(v.rental_fee) || 0,
+          actual_cost: 0,
+          is_purchased: false,
+          item_type: 'Venue Rental',
+          event_id: null,
+          created_by_name: byRef.current || null,
+        };
+        const { data: existingRental, error: rentalLookupError } = await supabase
+          .from('expenses')
+          .select('id')
+          .eq('venue_id', venueId)
+          .maybeSingle();
+        if (rentalLookupError) throw rentalLookupError;
+
+        const rentalResult = existingRental
+          ? await supabase.from('expenses').update(rentalPayload).eq('id', existingRental.id)
+          : await supabase.from('expenses').insert(rentalPayload);
+        if (rentalResult.error) throw rentalResult.error;
       }, id ? 'Venue updated' : 'Venue added'),
     [wrap]
   );

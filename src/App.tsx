@@ -131,7 +131,7 @@ function App() {
         })}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-40 sm:pb-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32 sm:pb-20">
         {loading ? (
           <div className="flex items-center justify-center py-32">
             <Loader2 size={32} className="text-sage-400 animate-spin" />
@@ -204,7 +204,7 @@ function App() {
         )}
       </main>
 
-      <footer className="fixed bottom-14 left-0 right-0 z-30 border-t border-cream-200 bg-white/90 backdrop-blur-sm sm:bottom-0">
+      <footer className="fixed bottom-16 left-0 right-0 z-30 border-t border-cream-200 bg-white/90 backdrop-blur-sm sm:bottom-0">
         <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-4 py-2 text-center text-[11px] text-slatey-500 sm:text-xs">
           <span className="font-semibold uppercase tracking-[0.12em] text-sage-600 shrink-0">Lucky quote</span>
           <p className="max-w-4xl italic text-slatey-600 leading-snug">

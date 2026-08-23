@@ -52,9 +52,9 @@ export default function Navigation({ active, onChange, showAttribution, onToggle
       </nav>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-cream-200 sm:hidden">
-        <div className="safe-area">
-          <div className="flex items-center justify-around gap-1 px-2 py-1.5">
+      <nav className="fixed inset-x-0 bottom-0 z-40 h-16 bg-white/95 backdrop-blur-md border-t border-cream-200 sm:hidden">
+        <div className="h-full flex items-center">
+          <div className="flex w-full items-center justify-around gap-1 px-2 py-1.5">
             {translatedTabs.map(({ key, label, icon: Icon }) => {
               const isActive = active === key;
               return (

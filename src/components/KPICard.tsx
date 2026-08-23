@@ -10,6 +10,8 @@ interface KPICardProps {
   trend?: { value: string; positive: boolean };
   tooltip?: { english: string; tagalog: string };
   language?: 'en' | 'tl';
+  onClick?: () => void;
+  expanded?: boolean;
 }
 
 const accents = {
@@ -28,10 +30,19 @@ export default function KPICard({
   trend,
   tooltip,
   language = 'en',
+  onClick,
+  expanded = false,
 }: KPICardProps) {
   const a = accents[accent];
   return (
-    <div className="card p-4 sm:p-5 animate-slide-up hover:shadow-soft-md transition-shadow">
+    <div
+      className={`card p-4 sm:p-5 animate-slide-up hover:shadow-soft-md transition-shadow ${onClick ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-300' : ''}`}
+      onClick={onClick}
+      onKeyDown={onClick ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onClick(); } } : undefined}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-expanded={onClick ? expanded : undefined}
+    >
       <div className="flex items-start justify-between">
         <div className={`rounded-xl ${a.bg} ${a.text} p-2 sm:p-2.5 ring-4 ${a.ring}`}>{icon}</div>
         {trend && (

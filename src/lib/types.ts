@@ -19,6 +19,7 @@ export interface ClubEvent {
 export interface Expense {
   id: string;
   event_id: string | null;
+  venue_id: string | null;
   description: string;
   priority: Priority;
   estimated_cost: number;
