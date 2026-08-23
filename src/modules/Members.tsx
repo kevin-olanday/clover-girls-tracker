@@ -27,7 +27,7 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
           <img
             src="https://ih1.redbubble.net/image.5294122878.0092/pp,504x498-pad,600x600,f8f8f8.u5.jpg"
             alt="Lucky Girls members artwork"
-            className="h-52 w-full object-cover sm:h-72"
+            className="h-32 w-full object-cover sm:h-44"
           />
         </div>
 
