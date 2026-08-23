@@ -65,13 +65,20 @@ function App() {
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const konamiBufferRef = useRef<string[]>([]);
   const achievementImageRef = useRef<HTMLSpanElement>(null);
-  const { reward } = useReward(achievementImageRef, 'stars', {
+  const lastAchievementRewardRef = useRef(0);
+  const { reward, replay } = useReward(achievementImageRef, 'stars', {
     particleCount: 70,
     spread: 120,
     startVelocity: 20,
     lifetime: 200,
     effects: {},
   });
+  const replayAchievement = () => {
+    const now = Date.now();
+    if (now - lastAchievementRewardRef.current < 250) return;
+    lastAchievementRewardRef.current = now;
+    void replay();
+  };
 
   useEffect(() => {
     supabase?.auth.getSession().then(({ data: { session } }) => {
@@ -304,14 +311,14 @@ function App() {
         }
       >
         <div className="space-y-4 text-center">
-          <div id="achievement" onClick={reward} className="cursor-pointer text-lg font-semibold text-sage-600">
+          <div id="achievement" onClick={replayAchievement} className="cursor-pointer text-lg font-semibold text-sage-600">
             🏆 Achievement Unlocked!
           </div>
           <div className="relative flex justify-center">
             <img
               src="https://i.pinimg.com/originals/86/8e/5b/868e5b65b040abdf8688945fde0e4c9e.gif"
               alt="Lucky Girls surprise"
-              onClick={reward}
+              onClick={replayAchievement}
               className="mx-auto w-full max-w-md cursor-pointer rounded-2xl shadow-soft"
             />
             <span ref={achievementImageRef} className="absolute left-1/2 top-1/2 z-20 h-px w-px -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />

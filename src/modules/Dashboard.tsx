@@ -20,17 +20,24 @@ interface DashboardProps {
 interface FounderAvatarButtonProps {
   name: string;
   avatar: string;
-  onSelect: (replayReward: () => void) => void;
+  onSelect: (replayReward: () => Promise<void>) => void;
 }
 
 function FounderAvatarButton({ name, avatar, onSelect }: FounderAvatarButtonProps) {
   const avatarRewardRef = useRef<HTMLImageElement>(null);
-  const { reward } = useReward(avatarRewardRef, 'hearts', {
+  const lastRewardRef = useRef(0);
+  const { reward, replay } = useReward(avatarRewardRef, 'hearts', {
     particleCount: 40,
     spread: 50,
     elementSize: 25,
     effects: { pulse: true },
   });
+  const replayReward = () => {
+    const now = Date.now();
+    if (now - lastRewardRef.current < 250) return;
+    lastRewardRef.current = now;
+    void replay();
+  };
 
   return (
     <button
@@ -38,7 +45,8 @@ function FounderAvatarButton({ name, avatar, onSelect }: FounderAvatarButtonProp
       onClick={(event) => {
         event.stopPropagation();
         reward();
-        onSelect(reward);
+        lastRewardRef.current = Date.now();
+        onSelect(replayReward);
       }}
       aria-label={`View ${name}'s full avatar`}
       className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400"
@@ -95,7 +103,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
   const profitPerFounder = netProfit / 3;
   const [showProfitSplit, setShowProfitSplit] = useState(false);
   const [showExpenseBreakdown, setShowExpenseBreakdown] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string; replayReward: () => void } | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string; replayReward: () => Promise<void> } | null>(null);
   const { language } = useLanguage();
 
   return (
