@@ -142,7 +142,7 @@ function LoginForm() {
                 <img
                   src="https://images6.alphacoders.com/315/thumb-1920-315988.png"
                   alt=""
-                  className="w-1/4 mx-auto mt-3 rounded-lg"
+                  className="w-1/2 mx-auto mt-3 rounded-lg"
                 />
               </div>
             )}
