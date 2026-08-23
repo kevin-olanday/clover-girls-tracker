@@ -6,7 +6,7 @@ import {
   Trash2,
   MapPin,
   Clock,
-  DollarSign,
+  Banknote,
   Users,
   Wallet,
   CalendarDays,
@@ -99,7 +99,7 @@ export default function VenuesIncome({
             <p className="text-lg font-bold text-slatey-700">{venues.length}</p>
           </div>
           <div className="card p-4">
-            <DollarSign size={18} className="text-coral-500 mb-2" />
+            <Banknote size={18} className="text-coral-500 mb-2" />
             <p className="text-xs text-slatey-400">Total Rental</p>
             <p className="text-lg font-bold text-slatey-700">{formatCurrency(totalRental)}</p>
           </div>

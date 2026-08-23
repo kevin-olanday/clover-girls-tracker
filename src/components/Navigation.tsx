@@ -68,34 +68,39 @@ export default function Navigation({ active, onChange, showAttribution, onToggle
 
       {/* Mobile bottom tab bar */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-cream-200 sm:hidden">
-        <div className="flex items-center justify-between gap-1 px-2 py-1.5 safe-area">
-          {translatedTabs.map(({ key, label, icon: Icon }) => {
-            const isActive = active === key;
-            return (
-              <button
-                key={key}
-                onClick={() => onChange(key)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors ${
-                  isActive ? 'text-sage-600' : 'text-slatey-400'
-                }`}
-              >
-                <Icon size={20} />
-                <span className="text-[10px] font-semibold">{label}</span>
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={onToggleAttribution}
-            title={showAttribution ? (language === 'tl' ? 'Itago ang pangalan ng nagdagdag' : 'Hide added-by names') : (language === 'tl' ? 'Ipakita ang pangalan ng nagdagdag' : 'Show added-by names')}
-            className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-colors ${showAttribution ? 'text-sage-600' : 'text-slatey-400'}`}
-          >
-            {showAttribution ? <Eye size={20} /> : <EyeOff size={20} />}
-            <span className="text-[10px] font-semibold">{showAttribution ? labels.names : `${labels.names} ${labels.hidden.toLowerCase()}`}</span>
-          </button>
-          <button type="button" onClick={() => setLanguage(language === 'en' ? 'tl' : 'en')} title={language === 'en' ? 'Switch to Tagalog' : 'Lumipat sa Ingles'} aria-label={language === 'en' ? 'Switch to Tagalog' : 'Lumipat sa Ingles'} className="flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl text-slatey-400">
-            <span className="text-base leading-none">{language === 'en' ? '🇵🇭' : '🇺🇸'}</span>
-          </button>
+        <div className="safe-area">
+          <div className="flex items-center justify-around gap-1 px-2 py-1.5">
+            {translatedTabs.map(({ key, label, icon: Icon }) => {
+              const isActive = active === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => onChange(key)}
+                  className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-colors ${
+                    isActive ? 'text-sage-600' : 'text-slatey-400'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span className="text-[10px] font-semibold">{label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-center gap-3 border-t border-cream-100 px-2 py-1">
+            <button
+              type="button"
+              onClick={onToggleAttribution}
+              title={showAttribution ? (language === 'tl' ? 'Itago ang pangalan ng nagdagdag' : 'Hide added-by names') : (language === 'tl' ? 'Ipakita ang pangalan ng nagdagdag' : 'Show added-by names')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-white px-2.5 py-1 text-xs font-semibold text-slatey-500 transition hover:bg-cream-50"
+            >
+              {showAttribution ? <Eye size={14} /> : <EyeOff size={14} />}
+              <span>{showAttribution ? labels.names : `${labels.names} ${labels.hidden.toLowerCase()}`}</span>
+            </button>
+            <div className="inline-flex items-center rounded-lg border border-cream-200 bg-white p-0.5">
+              <button type="button" onClick={() => setLanguage('en')} title="English" aria-label="Switch to English" className={`rounded-md px-2 py-1 text-base leading-none transition ${language === 'en' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇺🇸</button>
+              <button type="button" onClick={() => setLanguage('tl')} title="Tagalog" aria-label="Lumipat sa Tagalog" className={`rounded-md px-2 py-1 text-base leading-none transition ${language === 'tl' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇵🇭</button>
+            </div>
+          </div>
         </div>
       </nav>
     </>
