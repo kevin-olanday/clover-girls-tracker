@@ -32,6 +32,7 @@ export default function Expenses({
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
   const [filterType, setFilterType] = useState('all');
   const [filterEvent, setFilterEvent] = useState('all');
+  const [filterPurchased, setFilterPurchased] = useState('all');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
@@ -50,6 +51,8 @@ export default function Expenses({
   const filtered = expenses.filter((e) => {
     if (filterType !== 'all' && e.item_type !== filterType) return false;
     if (filterEvent !== 'all' && e.event_id !== filterEvent) return false;
+    if (filterPurchased === 'purchased' && !e.is_purchased) return false;
+    if (filterPurchased === 'pending' && e.is_purchased) return false;
     if (search && !e.description.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -206,6 +209,15 @@ export default function Expenses({
                 {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
               </select>
             )}
+            <select
+              className="input py-2 text-sm flex-1 min-w-[140px]"
+              value={filterPurchased}
+              onChange={(e) => setFilterPurchased(e.target.value)}
+            >
+              <option value="all">All Purchase Statuses</option>
+              <option value="pending">To Buy</option>
+              <option value="purchased">Already Bought</option>
+            </select>
           </div>
         )}
       </div>

@@ -137,7 +137,14 @@ function LoginForm() {
             </div>
 
             {error && (
-              <p className="text-sm text-coral-500 bg-coral-50 rounded-xl px-3 py-2">{error}</p>
+              <div className="text-center">
+                <p className="text-sm text-coral-500 bg-coral-50 rounded-xl px-3 py-2">{error}</p>
+                <img
+                  src="https://images6.alphacoders.com/315/thumb-1920-315988.png"
+                  alt=""
+                  className="w-1/4 mx-auto mt-3 rounded-lg"
+                />
+              </div>
             )}
 
             <button
