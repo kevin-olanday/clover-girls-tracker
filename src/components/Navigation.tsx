@@ -1,9 +1,11 @@
-import { LayoutDashboard, CalendarDays, ShoppingBag, Building2, Users } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, ShoppingBag, Building2, Users, Eye, EyeOff } from 'lucide-react';
 import { TabKey } from '@/lib/types';
 
 interface NavProps {
   active: TabKey;
   onChange: (tab: TabKey) => void;
+  showAttribution: boolean;
+  onToggleAttribution: () => void;
 }
 
 const tabs: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
@@ -14,13 +16,14 @@ const tabs: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
   { key: 'members', label: 'Participants', icon: Users },
 ];
 
-export default function Navigation({ active, onChange }: NavProps) {
+export default function Navigation({ active, onChange, showAttribution, onToggleAttribution }: NavProps) {
   return (
     <>
       {/* Desktop / tablet top tabs */}
       <nav className="sticky top-16 z-30 bg-cream-50/85 backdrop-blur-md border-b border-cream-200 hidden sm:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1">
             {tabs.map(({ key, label, icon: Icon }) => {
               const isActive = active === key;
               return (
@@ -39,13 +42,23 @@ export default function Navigation({ active, onChange }: NavProps) {
                 </button>
               );
             })}
+            </div>
+            <button
+              type="button"
+              onClick={onToggleAttribution}
+              title={showAttribution ? 'Hide added-by names' : 'Show added-by names'}
+              className="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slatey-500 transition hover:bg-cream-50"
+            >
+              {showAttribution ? <Eye size={14} /> : <EyeOff size={14} />}
+              <span>{showAttribution ? 'Names' : 'Names hidden'}</span>
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Mobile bottom tab bar */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-cream-200 sm:hidden">
-        <div className="flex items-center justify-around px-2 py-1.5 safe-area">
+        <div className="flex items-center justify-between gap-1 px-2 py-1.5 safe-area">
           {tabs.map(({ key, label, icon: Icon }) => {
             const isActive = active === key;
             return (
@@ -61,6 +74,15 @@ export default function Navigation({ active, onChange }: NavProps) {
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={onToggleAttribution}
+            title={showAttribution ? 'Hide added-by names' : 'Show added-by names'}
+            className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-colors ${showAttribution ? 'text-sage-600' : 'text-slatey-400'}`}
+          >
+            {showAttribution ? <Eye size={20} /> : <EyeOff size={20} />}
+            <span className="text-[10px] font-semibold">Names</span>
+          </button>
         </div>
       </nav>
     </>

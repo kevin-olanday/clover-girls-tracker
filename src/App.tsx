@@ -53,6 +53,7 @@ const LUCK_QUOTES = [
 
 function App() {
   const [tab, setTab] = useState<TabKey>('dashboard');
+  const [showAttribution, setShowAttribution] = useState(() => localStorage.getItem('show-attribution') !== 'false');
   const [luckyQuote, setLuckyQuote] = useState(LUCK_QUOTES[0]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const { events, expenses, venues, income, members, eventMembers, loading, connection, reload } = useClubData();
@@ -114,7 +115,16 @@ function App() {
         user={currentUser}
         onSignOut={handleSignOut}
       />
-      <Navigation active={tab} onChange={setTab} />
+      <Navigation
+        active={tab}
+        onChange={setTab}
+        showAttribution={showAttribution}
+        onToggleAttribution={() => setShowAttribution((visible) => {
+          const next = !visible;
+          localStorage.setItem('show-attribution', String(next));
+          return next;
+        })}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-40 sm:pb-20">
         {loading ? (
@@ -136,6 +146,7 @@ function App() {
                 onDeleteEvent={mutations.deleteEvent}
                 onSaveEventMemberLink={mutations.saveEventMemberLink}
                 onDeleteEventMemberLink={mutations.deleteEventMemberLink}
+                showAttribution={showAttribution}
                 onImportParticipants={(event_id, rows) =>
                   mutations.importEventParticipants(
                     event_id,
@@ -156,6 +167,7 @@ function App() {
                 onSaveExpense={mutations.saveExpense}
                 onTogglePurchased={mutations.toggleExpensePurchased}
                 onDeleteExpense={mutations.deleteExpense}
+                showAttribution={showAttribution}
               />
             )}
             {tab === 'venues' && (
@@ -170,6 +182,7 @@ function App() {
                 onSaveIncome={mutations.saveIncome}
                 onUpdateIncomeStatus={mutations.updateIncomeStatus}
                 onDeleteIncome={mutations.deleteIncome}
+                showAttribution={showAttribution}
               />
             )}
             {tab === 'members' && (
@@ -179,6 +192,7 @@ function App() {
                 onSaveMember={mutations.saveMember}
                 onDeleteMember={mutations.deleteMember}
                 onImportMembers={(rows) => mutations.importMembers(rows, members)}
+                showAttribution={showAttribution}
               />
             )}
           </div>

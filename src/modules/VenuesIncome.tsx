@@ -31,6 +31,7 @@ interface VenuesIncomeProps {
   onSaveIncome: (i: Partial<IncomeRecord>, id?: string) => Promise<boolean>;
   onUpdateIncomeStatus: (id: string, status: IncomeStatus) => Promise<boolean>;
   onDeleteIncome: (id: string) => Promise<boolean>;
+  showAttribution: boolean;
 }
 
 const venueStatuses: VenueStatus[] = ['Booked', 'Confirmed', 'Pending'];
@@ -47,6 +48,7 @@ export default function VenuesIncome({
   onSaveIncome,
   onUpdateIncomeStatus,
   onDeleteIncome,
+  showAttribution,
 }: VenuesIncomeProps) {
   const [venueModal, setVenueModal] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
@@ -216,7 +218,7 @@ export default function VenuesIncome({
                   {v.notes && (
                     <p className="mt-3 text-xs text-slatey-400 italic">{v.notes}</p>
                   )}
-                  {v.created_by_name && (
+                  {showAttribution && v.created_by_name && (
                     <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-cream-100 px-2 py-0.5 text-xs font-medium text-slatey-500">
                       <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sage-200 text-[9px] font-bold text-sage-700">
                         {v.created_by_name[0]}
@@ -310,7 +312,7 @@ export default function VenuesIncome({
                       <td className="px-5 py-3">
                         <p className="font-semibold text-slatey-700">{i.batch || '—'}</p>
                         {i.venue_name && <p className="text-xs text-slatey-400">{i.venue_name}</p>}
-                        {i.created_by_name && (
+                        {showAttribution && i.created_by_name && (
                           <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-cream-100 px-2 py-0.5 text-xs font-medium text-slatey-500">
                             <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sage-200 text-[9px] font-bold text-sage-700">
                               {i.created_by_name[0]}
