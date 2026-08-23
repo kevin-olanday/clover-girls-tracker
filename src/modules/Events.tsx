@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { CalendarDays, MapPin, Pencil, Trash2, Plus, Users, DollarSign, X } from 'lucide-react';
+import { CalendarDays, MapPin, Pencil, Trash2, Plus, Users, DollarSign, X, FileUp } from 'lucide-react';
 import Modal from '@/components/Modal';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
 import EventModal from '@/components/EventModal';
+import CsvImportModal, { CsvParticipantRow } from '@/components/CsvImportModal';
 import { ClubEvent, calcEvent, Member, EventMemberLink } from '@/lib/types';
 import { formatCurrency, formatDate, isUpcoming, daysUntil } from '@/lib/format';
 
@@ -16,6 +17,7 @@ interface EventsProps {
   onDeleteEvent: (id: string) => Promise<boolean>;
   onSaveEventMemberLink: (event_id: string, member_id: string) => Promise<boolean>;
   onDeleteEventMemberLink: (event_id: string, member_id: string) => Promise<boolean>;
+  onImportParticipants: (event_id: string, rows: CsvParticipantRow[]) => Promise<{ created: number; linked: number; skipped: number }>;
   externalModalOpen?: boolean;
   onExternalModalClose?: () => void;
 }
@@ -29,12 +31,14 @@ export default function Events({
   onDeleteEvent,
   onSaveEventMemberLink,
   onDeleteEventMemberLink,
+  onImportParticipants,
   externalModalOpen,
   onExternalModalClose,
 }: EventsProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ClubEvent | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ClubEvent | null>(null);
+  const [csvImportEvent, setCsvImportEvent] = useState<ClubEvent | null>(null);
 
   const openNew = () => {
     setEditing(null);
@@ -108,6 +112,13 @@ export default function Events({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCsvImportEvent(e)}
+                      title="Import participants from CSV"
+                      className="rounded-lg p-2 text-slatey-400 hover:bg-cream-100 hover:text-sage-600 transition"
+                    >
+                      <FileUp size={16} />
+                    </button>
                     <button
                       onClick={() => openEdit(e)}
                       className="rounded-lg p-2 text-slatey-400 hover:bg-cream-100 hover:text-sage-600 transition"
@@ -222,6 +233,15 @@ export default function Events({
         onSave={onSaveEvent}
         editing={editing}
       />
+
+      {csvImportEvent && (
+        <CsvImportModal
+          open={!!csvImportEvent}
+          onClose={() => setCsvImportEvent(null)}
+          event={csvImportEvent}
+          onImport={onImportParticipants}
+        />
+      )}
 
       {/* Delete confirmation */}
       <Modal

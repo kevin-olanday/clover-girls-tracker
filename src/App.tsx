@@ -115,6 +115,14 @@ function App() {
                 onDeleteEvent={mutations.deleteEvent}
                 onSaveEventMemberLink={mutations.saveEventMemberLink}
                 onDeleteEventMemberLink={mutations.deleteEventMemberLink}
+                onImportParticipants={(event_id, rows) =>
+                  mutations.importEventParticipants(
+                    event_id,
+                    rows,
+                    members,
+                    new Set(eventMembers.filter((l) => l.event_id === event_id).map((l) => l.member_id)),
+                  )
+                }
                 externalModalOpen={headerEventModal}
                 onExternalModalClose={() => setHeaderEventModal(false)}
               />

@@ -201,6 +201,84 @@ export function useMutations(reload: () => void) {
     [wrap]
   );
 
+  const importEventParticipants = useCallback(
+    async (
+      event_id: string,
+      rows: Array<{ first_name: string; last_name: string; role: string; phone_number: string; email: string; notes: string }>,
+      existingMembers: Member[],
+      linkedMemberIds: Set<string>,
+    ): Promise<{ created: number; linked: number; skipped: number }> => {
+      if (!supabase) return { created: 0, linked: 0, skipped: rows.length };
+
+      let created = 0, linked = 0, skipped = 0;
+      const localMembers = [...existingMembers];
+      const localLinked = new Set(linkedMemberIds);
+
+      for (const row of rows) {
+        const existing = localMembers.find(
+          (m) =>
+            m.first_name.toLowerCase() === row.first_name.toLowerCase() &&
+            m.last_name.toLowerCase() === row.last_name.toLowerCase(),
+        );
+
+        let memberId: string | undefined;
+
+        if (existing) {
+          memberId = existing.id;
+        } else {
+          const { data, error } = await supabase
+            .from('members')
+            .insert({
+              first_name: row.first_name,
+              last_name: row.last_name,
+              role: row.role || 'Member',
+              phone_number: row.phone_number || null,
+              email: row.email || null,
+              notes: row.notes || null,
+            })
+            .select('id')
+            .single();
+          if (error || !data) { skipped++; continue; }
+          memberId = (data as { id: string }).id;
+          created++;
+          localMembers.push({
+            id: memberId,
+            first_name: row.first_name,
+            last_name: row.last_name,
+            role: row.role || 'Member',
+            phone_number: row.phone_number || null,
+            email: row.email || null,
+            notes: row.notes || null,
+            created_at: new Date().toISOString(),
+          });
+        }
+
+        if (!memberId || localLinked.has(memberId)) { skipped++; continue; }
+
+        const { error: linkError } = await supabase
+          .from('event_members')
+          .insert({ event_id, member_id: memberId });
+        if (!linkError) {
+          linked++;
+          localLinked.add(memberId);
+        } else {
+          skipped++;
+        }
+      }
+
+      const total = linked + created;
+      if (total > 0) {
+        toast.success(`${total} participant${total !== 1 ? 's' : ''} added to event`);
+      } else {
+        toast.error('No new participants were imported');
+      }
+
+      await reload();
+      return { created, linked, skipped };
+    },
+    [reload],
+  );
+
   return {
     saving,
     saveEvent,
@@ -218,5 +296,6 @@ export function useMutations(reload: () => void) {
     deleteMember,
     saveEventMemberLink,
     deleteEventMemberLink,
+    importEventParticipants,
   };
 }
