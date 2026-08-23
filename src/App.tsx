@@ -105,7 +105,6 @@ function App() {
     <AuthGate>
     <div className="min-h-screen bg-cream-50">
       <Header
-        connection={connection}
         onSecret={() => setSecretModalOpen(true)}
         onHelp={() => setHelpModalOpen(true)}
         onNewEvent={() => {
@@ -114,6 +113,12 @@ function App() {
         }}
         user={currentUser}
         onSignOut={handleSignOut}
+        showAttribution={showAttribution}
+        onToggleAttribution={() => setShowAttribution((visible) => {
+          const next = !visible;
+          localStorage.setItem('show-attribution', String(next));
+          return next;
+        })}
       />
       <Navigation
         active={tab}

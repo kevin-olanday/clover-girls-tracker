@@ -1,23 +1,24 @@
-import { useRef } from 'react';
-import { Clover, HelpCircle, Plus, Wifi, WifiOff, LogOut } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Clover, HelpCircle, Plus, LogOut, Menu, X, Eye, EyeOff, CircleUserRound } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { useLanguage } from '@/lib/LanguageContext';
 
 interface HeaderProps {
-  connection: 'connecting' | 'connected' | 'error';
   onNewEvent: () => void;
   onSecret: () => void;
   onHelp: () => void;
   user?: User | null;
   onSignOut?: () => void;
+  showAttribution?: boolean;
+  onToggleAttribution?: () => void;
 }
 
-export default function Header({ connection, onNewEvent, onSecret, onHelp, user, onSignOut }: HeaderProps) {
-  const { language } = useLanguage();
+export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, showAttribution = true, onToggleAttribution }: HeaderProps) {
+  const { language, setLanguage } = useLanguage();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const labels = language === 'tl'
     ? { subtitle: 'Event & Finance Manager', help: 'Paano', connected: 'Nakakonekta', connectionError: 'May error sa koneksyon', connecting: 'Kumokonekta…', newEvent: 'Bagong Event', signOut: 'Mag-sign out' }
     : { subtitle: 'Event & Finance Manager', help: 'How to', connected: 'Connected', connectionError: 'Connection Error', connecting: 'Connecting…', newEvent: 'New Event', signOut: 'Sign out' };
-  const connected = connection === 'connected';
   const tapCountRef = useRef(0);
   const lastTapRef = useRef(0);
 
@@ -73,27 +74,67 @@ export default function Header({ connection, onNewEvent, onSecret, onHelp, user,
               <HelpCircle size={14} />
               <span className="hidden sm:inline">{labels.help}</span>
             </button>
-            <div
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                connected
-                  ? 'bg-emeraldx-50 text-emeraldx-600'
-                  : connection === 'error'
-                    ? 'bg-rose-50 text-rose-600'
-                    : 'bg-slatey-50 text-slatey-400'
-              }`}
-              title={connected ? 'Connected to Supabase' : 'Supabase connection unavailable'}
-            >
-              {connected ? <Wifi size={14} /> : <WifiOff size={14} />}
-              <span className="hidden sm:inline">
-                {connected ? labels.connected : connection === 'error' ? labels.connectionError : labels.connecting}
-              </span>
-            </div>
-            <button onClick={onNewEvent} className="btn-primary text-sm">
+            <button onClick={onNewEvent} className="btn-primary text-sm hidden sm:inline-flex">
               <Plus size={18} />
               <span className="hidden sm:inline">{labels.newEvent}</span>
             </button>
+            {user && (
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                title={language === 'tl' ? 'Naka-sign in bilang' : 'Signed in as'}
+                aria-label={language === 'tl' ? 'Ipakita ang user menu' : 'Show user menu'}
+                className="rounded-xl p-2 text-sage-600 hover:bg-cream-100 transition sm:hidden"
+              >
+                <CircleUserRound size={19} />
+              </button>
+            )}
+            {onToggleAttribution && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen((open) => !open)}
+                  title={language === 'tl' ? 'Buksan ang menu' : 'Open menu'}
+                  aria-label={language === 'tl' ? 'Buksan ang menu' : 'Open menu'}
+                  aria-expanded={mobileMenuOpen}
+                  className="rounded-xl p-2 text-slatey-500 hover:bg-cream-100 transition"
+                >
+                  {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+                {mobileMenuOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 flex min-w-56 flex-col gap-3 rounded-2xl border border-cream-200 bg-white p-3 shadow-soft-md">
+                    {user && (
+                      <div className="border-b border-cream-100 pb-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slatey-400">
+                          {language === 'tl' ? 'Naka-sign in bilang' : 'Signed in as'}
+                        </p>
+                        <p className="mt-0.5 text-sm font-semibold text-slatey-700">
+                          {user.user_metadata?.name ?? user.email}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={onToggleAttribution}
+                      title={showAttribution ? 'Hide added-by names' : 'Show added-by names'}
+                      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-cream-200 bg-cream-50 px-2.5 py-1.5 text-xs font-semibold text-slatey-500"
+                    >
+                      {showAttribution ? <Eye size={14} /> : <EyeOff size={14} />}
+                      <span>{showAttribution ? 'Names' : 'Names hidden'}</span>
+                    </button>
+                    <div className="inline-flex items-center rounded-lg border border-cream-200 bg-white p-0.5">
+                      <button type="button" onClick={() => setLanguage('en')} title="English" className={`rounded-md px-2 py-1 text-base leading-none ${language === 'en' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇺🇸</button>
+                      <button type="button" onClick={() => setLanguage('tl')} title="Tagalog" className={`rounded-md px-2 py-1 text-base leading-none ${language === 'tl' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇵🇭</button>
+                    </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {user && onSignOut && (
-              <div className="flex items-center gap-2 pl-1 border-l border-cream-200">
+              <div className="hidden sm:flex items-center gap-2 pl-1 border-l border-cream-200">
+                <CircleUserRound size={16} className="text-sage-600" />
                 <span className="hidden sm:block text-xs font-semibold text-slatey-600">
                   {user.user_metadata?.name ?? user.email}
                 </span>

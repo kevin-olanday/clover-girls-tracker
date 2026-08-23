@@ -1,4 +1,4 @@
-import { LayoutDashboard, CalendarDays, ShoppingBag, Building2, Users, Eye, EyeOff } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, ShoppingBag, Building2, Users } from 'lucide-react';
 import { TabKey } from '@/lib/types';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -28,8 +28,7 @@ export default function Navigation({ active, onChange, showAttribution, onToggle
       {/* Desktop / tablet top tabs */}
       <nav className="sticky top-16 z-30 bg-cream-50/85 backdrop-blur-md border-b border-cream-200 hidden sm:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
             {translatedTabs.map(({ key, label, icon: Icon }) => {
               const isActive = active === key;
               return (
@@ -48,20 +47,6 @@ export default function Navigation({ active, onChange, showAttribution, onToggle
                 </button>
               );
             })}
-            </div>
-            <button
-              type="button"
-              onClick={onToggleAttribution}
-              title={showAttribution ? (language === 'tl' ? 'Itago ang pangalan ng nagdagdag' : 'Hide added-by names') : (language === 'tl' ? 'Ipakita ang pangalan ng nagdagdag' : 'Show added-by names')}
-              className="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slatey-500 transition hover:bg-cream-50"
-            >
-              {showAttribution ? <Eye size={14} /> : <EyeOff size={14} />}
-              <span>{showAttribution ? labels.names : `${labels.names} ${labels.hidden.toLowerCase()}`}</span>
-            </button>
-            <div className="inline-flex items-center rounded-lg border border-cream-200 bg-white p-0.5">
-              <button type="button" onClick={() => setLanguage('en')} title="English" aria-label="Switch to English" className={`rounded-md px-2 py-1 text-base leading-none transition ${language === 'en' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇺🇸</button>
-              <button type="button" onClick={() => setLanguage('tl')} title="Tagalog" aria-label="Lumipat sa Tagalog" className={`rounded-md px-2 py-1 text-base leading-none transition ${language === 'tl' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇵🇭</button>
-            </div>
           </div>
         </div>
       </nav>
@@ -85,21 +70,6 @@ export default function Navigation({ active, onChange, showAttribution, onToggle
                 </button>
               );
             })}
-          </div>
-          <div className="flex items-center justify-center gap-3 border-t border-cream-100 px-2 py-1">
-            <button
-              type="button"
-              onClick={onToggleAttribution}
-              title={showAttribution ? (language === 'tl' ? 'Itago ang pangalan ng nagdagdag' : 'Hide added-by names') : (language === 'tl' ? 'Ipakita ang pangalan ng nagdagdag' : 'Show added-by names')}
-              className="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-white px-2.5 py-1 text-xs font-semibold text-slatey-500 transition hover:bg-cream-50"
-            >
-              {showAttribution ? <Eye size={14} /> : <EyeOff size={14} />}
-              <span>{showAttribution ? labels.names : `${labels.names} ${labels.hidden.toLowerCase()}`}</span>
-            </button>
-            <div className="inline-flex items-center rounded-lg border border-cream-200 bg-white p-0.5">
-              <button type="button" onClick={() => setLanguage('en')} title="English" aria-label="Switch to English" className={`rounded-md px-2 py-1 text-base leading-none transition ${language === 'en' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇺🇸</button>
-              <button type="button" onClick={() => setLanguage('tl')} title="Tagalog" aria-label="Lumipat sa Tagalog" className={`rounded-md px-2 py-1 text-base leading-none transition ${language === 'tl' ? 'bg-sage-100' : 'opacity-50 grayscale'}`}>🇵🇭</button>
-            </div>
           </div>
         </div>
       </nav>

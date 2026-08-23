@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Banknote, TrendingDown, TrendingUp, Users, AlertTriangle, CalendarDays, MapPin, Receipt, Tag } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import confetti from 'canvas-confetti';
+import { Banknote, TrendingDown, TrendingUp, Users, AlertTriangle, CalendarDays, MapPin, Receipt, Tag, Clover } from 'lucide-react';
 import KPICard from '@/components/KPICard';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
@@ -7,6 +8,7 @@ import { ClubEvent, Expense, Venue, IncomeRecord, calcEvent } from '@/lib/types'
 import { formatCurrency, formatDate, isUpcoming, daysUntil } from '@/lib/format';
 import MetricTooltip from '@/components/MetricTooltip';
 import { useLanguage } from '@/lib/LanguageContext';
+import Modal from '@/components/Modal';
 
 interface DashboardProps {
   events: ClubEvent[];
@@ -57,7 +59,35 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
 
   const profitPerFounder = netProfit / 3;
   const [showProfitSplit, setShowProfitSplit] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string } | null>(null);
   const { language } = useLanguage();
+
+  useEffect(() => {
+    if (!selectedAvatar) return;
+
+    const defaults = {
+      spread: 360,
+      ticks: 220,
+      gravity: 0.25,
+      decay: 0.97,
+      startVelocity: 20,
+      origin: { x: 0.5, y: 0.52 },
+      zIndex: 60,
+      disableForReducedMotion: true,
+    };
+    const clover = confetti.shapeFromText({ text: '🍀', scalar: 1.2 });
+    const star = confetti.shapeFromText({ text: '⭐', scalar: 1.2 });
+    const heart = confetti.shapeFromText({ text: '❤️', scalar: 1.2 });
+    const colors = ['#d45f90', '#29cdff', '#78b84a', '#ff718d', '#fdcf6a'];
+
+    confetti({ ...defaults, particleCount: 45, scalar: 1.6, shapes: ['circle', 'square'], colors });
+    window.setTimeout(() => {
+      confetti({ ...defaults, particleCount: 36, scalar: 2.4, shapes: [clover, star, heart] });
+    }, 250);
+    window.setTimeout(() => {
+      confetti({ ...defaults, particleCount: 32, scalar: 2.6, shapes: [clover, star, heart] });
+    }, 500);
+  }, [selectedAvatar]);
 
   return (
     <div className="space-y-6">
@@ -124,12 +154,25 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           </button>
 
           {showProfitSplit && (
-            <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-cream-200 bg-white p-4 shadow-soft-md">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400 mb-3">Profit ÷ 3 founders</p>
-              <div className="space-y-2">
-                {['Jann', 'Jenn', 'Jena'].map((name) => (
-                  <div key={name} className="flex items-center justify-between rounded-xl bg-cream-50 px-3 py-2">
-                    <span className="text-sm font-medium text-slatey-700">🍀 {name}</span>
+            <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-cream-200 bg-white p-6 shadow-soft-md">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400 mb-4">Profit ÷ 3 founders</p>
+              <div className="space-y-3">
+                {[{ name: 'Jann', avatar: '/jann.jpg' }, { name: 'Jenn', avatar: '/jenn.jpg' }, { name: 'Jena', avatar: '/jena.jpg' }].map(({ name, avatar }) => (
+                  <div key={name} className="flex items-center justify-between rounded-xl bg-cream-50 px-4 py-3">
+                    <span className="flex items-center gap-3 text-sm font-medium text-slatey-700">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelectedAvatar({ name, avatar });
+                        }}
+                        aria-label={`View ${name}'s full avatar`}
+                        className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400"
+                      >
+                        <img src={avatar} alt={`${name} avatar`} className="h-12 w-12 rounded-full object-cover ring-2 ring-cream-200 transition hover:ring-sage-400" />
+                      </button>
+                      {name}
+                    </span>
                     <span className={`text-sm font-bold ${
                       profitPerFounder >= 0 ? 'text-emeraldx-600' : 'text-coral-500'
                     }`}>
@@ -139,6 +182,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                 ))}
               </div>
             </div>
+
           )}
         </div>
         <KPICard
@@ -151,6 +195,28 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           tooltip={{ english: 'The percentage of available event seats that are currently registered.', tagalog: 'Porsiyento ng mga available na upuan sa event na may nakarehistrong participant.' }}
         />
       </div>
+
+      <Modal
+        open={!!selectedAvatar}
+        onClose={() => setSelectedAvatar(null)}
+        title={
+          <span className="flex items-center gap-2">
+            <Clover size={18} className="text-sage-500" />
+            {selectedAvatar?.name}
+          </span>
+        }
+        size="md"
+      >
+        {selectedAvatar && (
+          <div className="relative flex justify-center">
+            <img
+              src={selectedAvatar.avatar}
+              alt={`${selectedAvatar.name} full avatar`}
+              className="relative z-10 mx-auto max-h-[65vh] w-full rounded-xl object-contain"
+            />
+          </div>
+        )}
+      </Modal>
 
       {/* Budget Variance */}
       <div
