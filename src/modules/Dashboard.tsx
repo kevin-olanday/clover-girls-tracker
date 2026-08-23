@@ -20,7 +20,7 @@ interface DashboardProps {
 interface FounderAvatarButtonProps {
   name: string;
   avatar: string;
-  onSelect: () => void;
+  onSelect: (replayReward: () => void) => void;
 }
 
 function FounderAvatarButton({ name, avatar, onSelect }: FounderAvatarButtonProps) {
@@ -38,7 +38,7 @@ function FounderAvatarButton({ name, avatar, onSelect }: FounderAvatarButtonProp
       onClick={(event) => {
         event.stopPropagation();
         reward();
-        onSelect();
+        onSelect(reward);
       }}
       aria-label={`View ${name}'s full avatar`}
       className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400"
@@ -95,7 +95,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
   const profitPerFounder = netProfit / 3;
   const [showProfitSplit, setShowProfitSplit] = useState(false);
   const [showExpenseBreakdown, setShowExpenseBreakdown] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string } | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string; replayReward: () => void } | null>(null);
   const { language } = useLanguage();
 
   return (
@@ -202,7 +202,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                       <FounderAvatarButton
                         name={name}
                         avatar={avatar}
-                        onSelect={() => setSelectedAvatar({ name, avatar })}
+                        onSelect={(replayReward) => setSelectedAvatar({ name, avatar, replayReward })}
                       />
                       {name}
                     </span>
@@ -246,7 +246,8 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
             <img
               src={selectedAvatar.avatar}
               alt={`${selectedAvatar.name} full avatar`}
-              className="relative z-10 mx-auto max-h-[65vh] w-full rounded-xl object-contain"
+              onClick={selectedAvatar.replayReward}
+              className="relative z-10 mx-auto max-h-[65vh] w-full cursor-pointer rounded-xl object-contain"
             />
           </div>
         )}

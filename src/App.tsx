@@ -311,7 +311,8 @@ function App() {
             <img
               src="https://i.pinimg.com/originals/86/8e/5b/868e5b65b040abdf8688945fde0e4c9e.gif"
               alt="Lucky Girls surprise"
-              className="mx-auto w-full max-w-md rounded-2xl shadow-soft"
+              onClick={reward}
+              className="mx-auto w-full max-w-md cursor-pointer rounded-2xl shadow-soft"
             />
             <span ref={achievementImageRef} className="absolute left-1/2 top-1/2 z-20 h-px w-px -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
           </div>
