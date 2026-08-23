@@ -13,6 +13,15 @@ interface HeaderProps {
   onToggleAttribution?: () => void;
 }
 
+const getAvatar = (user?: User | null) => {
+  const accountName = (user?.user_metadata?.name || user?.email?.split('@')[0] || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+  const avatarName = ['admin', 'jann', 'jenn', 'jena'].find((name) => accountName.startsWith(name));
+  return avatarName ? `/${avatarName}.jpg` : null;
+};
+
 export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, showAttribution = true, onToggleAttribution }: HeaderProps) {
   const { language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +30,7 @@ export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, 
     : { subtitle: 'Event & Finance Manager', help: 'How to', connected: 'Connected', connectionError: 'Connection Error', connecting: 'Connecting…', newEvent: 'New Event', signOut: 'Sign out' };
   const tapCountRef = useRef(0);
   const lastTapRef = useRef(0);
+  const avatar = getAvatar(user);
 
   const handleSecretTap = () => {
     const now = Date.now();
@@ -32,7 +42,7 @@ export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, 
 
     lastTapRef.current = now;
 
-    if (tapCountRef.current >= 7) {
+    if (tapCountRef.current === 7) {
       tapCountRef.current = 0;
       onSecret();
     }
@@ -46,7 +56,6 @@ export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, 
             <button
               type="button"
               onClick={handleSecretTap}
-              onTouchStart={handleSecretTap}
               className="relative rounded-2xl focus:outline-none focus:ring-2 focus:ring-sage-300"
               aria-label="Secret surprise"
             >
@@ -86,7 +95,7 @@ export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, 
                 aria-label={language === 'tl' ? 'Ipakita ang user menu' : 'Show user menu'}
                 className="rounded-xl p-2 text-sage-600 hover:bg-cream-100 transition sm:hidden"
               >
-                <CircleUserRound size={19} />
+                {avatar ? <img src={avatar} alt={`${user.user_metadata?.name || 'Account'} avatar`} className="h-5 w-5 rounded-full object-cover" /> : <CircleUserRound size={19} />}
               </button>
             )}
             {onToggleAttribution && (
@@ -134,7 +143,7 @@ export default function Header({ onNewEvent, onSecret, onHelp, user, onSignOut, 
             )}
             {user && onSignOut && (
               <div className="hidden sm:flex items-center gap-2 pl-1 border-l border-cream-200">
-                <CircleUserRound size={16} className="text-sage-600" />
+                {avatar ? <img src={avatar} alt={`${user.user_metadata?.name || 'Account'} avatar`} className="h-5 w-5 rounded-full object-cover" /> : <CircleUserRound size={16} className="text-sage-600" />}
                 <span className="hidden sm:block text-xs font-semibold text-slatey-600">
                   {user.user_metadata?.name ?? user.email}
                 </span>

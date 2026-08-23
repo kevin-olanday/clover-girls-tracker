@@ -53,7 +53,7 @@ export default function KPICard({
           </span>
         )}
       </div>
-      <p className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold font-display text-slatey-700 tracking-tight">
+      <p className="mt-3 sm:mt-4 text-xl sm:text-2xl font-extrabold font-display text-slatey-700 tracking-tight tabular-nums">
         {value}
       </p>
       <div className="mt-1 flex items-center gap-1">

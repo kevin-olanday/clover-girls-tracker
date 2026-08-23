@@ -60,14 +60,17 @@ export function useMutations(reload: () => void, createdByName?: string | null) 
   );
 
   const toggleExpensePurchased = useCallback(
-    async (id: string, current: boolean) => {
+    async (id: string, current: boolean, actualCost?: number) => {
       // optimistic
       toast.success(current ? 'Marked as not purchased' : 'Marked as purchased');
       try {
         if (supabase) {
           const { error } = await supabase
             .from('expenses')
-            .update({ is_purchased: !current })
+            .update({
+              is_purchased: !current,
+              ...(actualCost !== undefined ? { actual_cost: actualCost } : {}),
+            })
             .eq('id', id);
           if (error) throw error;
         }

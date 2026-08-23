@@ -14,7 +14,7 @@ interface ExpensesProps {
   venues: Venue[];
   saving: boolean;
   onSaveExpense: (e: Partial<Expense>, id?: string) => Promise<boolean>;
-  onTogglePurchased: (id: string, current: boolean) => Promise<boolean>;
+  onTogglePurchased: (id: string, current: boolean, actualCost?: number) => Promise<boolean>;
   onDeleteExpense: (id: string) => Promise<boolean>;
   showAttribution: boolean;
 }
@@ -31,6 +31,8 @@ export default function Expenses({
 }: ExpensesProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
+  const [purchaseTarget, setPurchaseTarget] = useState<Expense | null>(null);
+  const [purchaseActualCost, setPurchaseActualCost] = useState('0');
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
   const [filterType, setFilterType] = useState('all');
   const [filterEvent, setFilterEvent] = useState('all');
@@ -38,6 +40,8 @@ export default function Expenses({
   const [filterCostType, setFilterCostType] = useState<'all' | 'supplies' | 'venue'>('all');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [sortKey, setSortKey] = useState<'item' | 'category' | 'quantity' | 'estimated' | 'actual'>('item');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const eventMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -89,6 +93,36 @@ export default function Expenses({
     if (search && !searchText.includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const sortedExpenses = [...filtered].sort((first, second) => {
+    let comparison = 0;
+    if (sortKey === 'estimated') comparison = (first.estimated_cost || 0) - (second.estimated_cost || 0);
+    else if (sortKey === 'actual') comparison = (first.actual_cost || 0) - (second.actual_cost || 0);
+    else {
+      const firstValue = sortKey === 'item'
+        ? first.description
+        : sortKey === 'category'
+          ? first.item_type
+          : (first as any).quantity_details;
+      const secondValue = sortKey === 'item'
+        ? second.description
+        : sortKey === 'category'
+          ? second.item_type
+          : (second as any).quantity_details;
+      comparison = (firstValue || '').localeCompare(secondValue || '');
+    }
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDirection((direction) => direction === 'asc' ? 'desc' : 'asc');
+    else {
+      setSortKey(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortIndicator = (key: typeof sortKey) => sortKey === key ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : '';
 
   const totalEstimated = expenses.reduce((s, e) => s + (e.estimated_cost || 0), 0);
   const purchasedCount = expenses.filter((e) => e.is_purchased).length;
@@ -201,6 +235,14 @@ export default function Expenses({
 
   const openNew = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (e: Expense) => { setEditing(e); setModalOpen(true); };
+  const requestPurchase = (expense: Expense) => {
+    if (expense.is_purchased) {
+      void onTogglePurchased(expense.id, true);
+      return;
+    }
+    setPurchaseTarget(expense);
+    setPurchaseActualCost(String(expense.actual_cost ?? expense.estimated_cost ?? 0));
+  };
 
   return (
     <div className="space-y-5">
@@ -475,21 +517,12 @@ export default function Expenses({
               <option value="supplies">Supplies only</option>
               <option value="venue">Venue expenses only</option>
             </select>
-            <select
-              className="input py-2 text-sm flex-1 min-w-[140px]"
-              value={filterPurchased}
-              onChange={(e) => setFilterPurchased(e.target.value)}
-            >
-              <option value="all">All Purchase Statuses</option>
-              <option value="pending">To Buy</option>
-              <option value="purchased">Already Bought</option>
-            </select>
           </div>
         )}
       </div>
 
       {/* Expense list */}
-      {filtered.length === 0 ? (
+      {sortedExpenses.length === 0 ? (
         <div className="card">
           <EmptyState
             icon={<ShoppingBag size={28} />}
@@ -501,24 +534,35 @@ export default function Expenses({
       ) : viewMode === 'list' ? (
         /* Compact list view */
         <div className="card overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-slatey-400 border-b border-cream-200 bg-cream-50">
                 <th className="text-left px-3 py-3 font-medium w-6"></th>
-                <th className="text-left px-3 py-3 font-medium">Item</th>
-                <th className="text-left px-3 py-3 font-medium hidden sm:table-cell">Category</th>
-                <th className="text-left px-3 py-3 font-medium hidden md:table-cell">Qty / Details</th>
-                <th className="text-right px-3 py-3 font-medium hidden xs:table-cell">Est.</th>
-                <th className="text-right px-3 py-3 font-medium">Actual</th>
+                <th className="text-left px-3 py-3 font-medium">
+                  <button type="button" onClick={() => toggleSort('item')}>Item{sortIndicator('item')}</button>
+                </th>
+                <th className="text-left px-3 py-3 font-medium hidden sm:table-cell">
+                  <button type="button" onClick={() => toggleSort('category')}>Category{sortIndicator('category')}</button>
+                </th>
+                <th className="text-left px-3 py-3 font-medium hidden md:table-cell">
+                  <button type="button" onClick={() => toggleSort('quantity')}>Qty / Details{sortIndicator('quantity')}</button>
+                </th>
+                <th className="text-right px-3 py-3 font-medium">
+                  <button type="button" onClick={() => toggleSort('estimated')}>Estimated{sortIndicator('estimated')}</button>
+                </th>
+                <th className="text-right px-3 py-3 font-medium">
+                  <button type="button" onClick={() => toggleSort('actual')}>Actual{sortIndicator('actual')}</button>
+                </th>
                 <th className="text-right px-3 py-3 font-medium w-16"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-cream-100">
-              {filtered.map((e) => (
+              {sortedExpenses.map((e) => (
                 <tr key={e.id} className={`group hover:bg-cream-50 transition-colors ${e.is_purchased ? 'opacity-60' : ''}`}>
                   <td className="px-3 py-3">
                     <button
-                      onClick={() => onTogglePurchased(e.id, e.is_purchased)}
+                      onClick={() => requestPurchase(e)}
                       className={`rounded-full p-1.5 transition-all ${e.is_purchased ? 'bg-emeraldx-400 text-white' : 'bg-cream-100 text-slatey-300 hover:bg-cream-200'}`}
                     >
                       {e.is_purchased ? <Check size={13} /> : <Circle size={13} />}
@@ -551,7 +595,7 @@ export default function Expenses({
                   <td className="px-3 py-3 text-slatey-400 text-xs hidden md:table-cell">
                     {(e as any).quantity_details || '—'}
                   </td>
-                  <td className="px-3 py-3 text-right text-slatey-400 font-medium hidden xs:table-cell">{formatCurrency(e.estimated_cost)}</td>
+                  <td className="px-3 py-3 text-right text-slatey-400 font-medium">{formatCurrency(e.estimated_cost)}</td>
                   <td className="px-3 py-3 text-right font-semibold text-slatey-700">
                     <div className="flex items-center justify-end gap-1.5">
                       {formatCurrency(e.actual_cost)}
@@ -561,9 +605,6 @@ export default function Expenses({
                         </a>
                       )}
                     </div>
-                    <p className="mt-0.5 text-[11px] font-medium text-slatey-400 xs:hidden">
-                      Est. {formatCurrency(e.estimated_cost)}
-                    </p>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-0.5">
@@ -574,18 +615,19 @@ export default function Expenses({
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       ) : (
         /* Grid view */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((e) => {
+          {sortedExpenses.map((e) => {
             const itemVariance = (e.actual_cost || 0) - (e.estimated_cost || 0);
             return (
               <div key={e.id} className={`card p-4 transition-all group ${e.is_purchased ? 'opacity-75' : ''}`}>
                 <div className="flex items-start gap-3">
                   <button
-                    onClick={() => onTogglePurchased(e.id, e.is_purchased)}
+                    onClick={() => requestPurchase(e)}
                     className={`mt-0.5 shrink-0 rounded-full p-1.5 transition-all ${e.is_purchased ? 'bg-emeraldx-400 text-white' : 'bg-cream-100 text-slatey-300 hover:bg-cream-200 hover:text-slatey-400'}`}
                     title={e.is_purchased ? 'Mark as not purchased' : 'Mark as purchased'}
                   >
@@ -650,6 +692,43 @@ export default function Expenses({
         editing={editing}
         events={events}
       />
+
+      <Modal
+        open={!!purchaseTarget}
+        onClose={() => setPurchaseTarget(null)}
+        title="Confirm Purchase"
+        subtitle={purchaseTarget ? `Enter the actual cost for ${purchaseTarget.description}.` : undefined}
+        size="sm"
+        footer={
+          <>
+            <button onClick={() => setPurchaseTarget(null)} className="btn-ghost">Cancel</button>
+            <button
+              onClick={async () => {
+                if (!purchaseTarget) return;
+                const ok = await onTogglePurchased(purchaseTarget.id, false, Number(purchaseActualCost) || 0);
+                if (ok) setPurchaseTarget(null);
+              }}
+              className="btn-primary"
+            >
+              <Check size={16} /> Mark Bought
+            </button>
+          </>
+        }
+      >
+        <div>
+          <label className="label" htmlFor="purchase-actual-cost">Actual Cost</label>
+          <input
+            id="purchase-actual-cost"
+            type="number"
+            min={0}
+            step="0.01"
+            className="input"
+            value={purchaseActualCost}
+            onChange={(event) => setPurchaseActualCost(event.target.value)}
+            autoFocus
+          />
+        </div>
+      </Modal>
 
       <Modal
         open={!!deleteTarget}

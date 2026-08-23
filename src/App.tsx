@@ -15,6 +15,7 @@ import { TabKey } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import Modal from '@/components/Modal';
 import type { User } from '@supabase/supabase-js';
+import { useReward } from 'partycles';
 
 const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
@@ -61,7 +62,16 @@ function App() {
   const [headerEventModal, setHeaderEventModal] = useState(false);
   const [secretModalOpen, setSecretModalOpen] = useState(false);
   const [helpModalOpen, setHelpModalOpen] = useState(false);
+  const [creditModalOpen, setCreditModalOpen] = useState(false);
   const konamiBufferRef = useRef<string[]>([]);
+  const achievementImageRef = useRef<HTMLImageElement>(null);
+  const { reward } = useReward(achievementImageRef, 'stars', {
+    particleCount: 70,
+    spread: 120,
+    startVelocity: 20,
+    lifetime: 200,
+    effects: {},
+  });
 
   useEffect(() => {
     supabase?.auth.getSession().then(({ data: { session } }) => {
@@ -81,6 +91,10 @@ function App() {
     const randomIndex = Math.floor(Math.random() * LUCK_QUOTES.length);
     setLuckyQuote(LUCK_QUOTES[randomIndex]);
   }, []);
+
+  useEffect(() => {
+    if (secretModalOpen) reward();
+  }, [secretModalOpen, reward]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -290,14 +304,51 @@ function App() {
         }
       >
         <div className="space-y-4 text-center">
+          <div id="achievement" onClick={reward} className="cursor-pointer text-lg font-semibold text-sage-600">
+            🏆 Achievement Unlocked!
+          </div>
           <img
+            ref={achievementImageRef}
             src="https://i.pinimg.com/originals/86/8e/5b/868e5b65b040abdf8688945fde0e4c9e.gif"
             alt="Lucky Girls surprise"
             className="mx-auto w-full max-w-md rounded-2xl shadow-soft"
           />
           <p className="text-lg text-slatey-700 leading-relaxed">
-            Made with ❤️ by Kevin Olanday for all the Lucky Girls out there.
+            Made with ❤️ by <button type="button" onClick={() => setCreditModalOpen(true)} className="font-semibold text-sage-600 underline decoration-sage-300 underline-offset-2 hover:text-sage-700">Kevin Olanday</button> for all the Lucky Girls out there.
           </p>
+        </div>
+      </Modal>
+
+      <Modal
+        open={creditModalOpen}
+        onClose={() => setCreditModalOpen(false)}
+        title="Work with Kevin Olanday"
+        size="sm"
+        footer={
+          <button onClick={() => setCreditModalOpen(false)} className="btn-primary">
+            Close
+          </button>
+        }
+      >
+        <div className="space-y-4 text-center">
+          <div className="relative flex justify-center">
+            <img
+              src="/admin.jpg"
+              alt="Kevin Olanday"
+              className="relative z-10 mx-auto max-h-[65vh] w-full rounded-xl object-contain"
+            />
+          </div>
+          <p className="text-sm leading-6 text-slatey-500">
+            Need a thoughtful website or product built for your team?
+          </p>
+          <a
+            href="https://hire.kevinolanday.me"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary w-full"
+          >
+            Visit hire.kevinolanday.me
+          </a>
         </div>
       </Modal>
 

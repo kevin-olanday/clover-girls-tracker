@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import confetti from 'canvas-confetti';
+import { useRef, useState } from 'react';
 import { Banknote, TrendingDown, TrendingUp, Users, AlertTriangle, CalendarDays, MapPin, Receipt, Tag, Clover } from 'lucide-react';
+import { useReward } from 'partycles';
 import KPICard from '@/components/KPICard';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
@@ -15,6 +15,37 @@ interface DashboardProps {
   expenses: Expense[];
   venues: Venue[];
   income: IncomeRecord[];
+}
+
+interface FounderAvatarButtonProps {
+  name: string;
+  avatar: string;
+  onSelect: () => void;
+}
+
+function FounderAvatarButton({ name, avatar, onSelect }: FounderAvatarButtonProps) {
+  const avatarRewardRef = useRef<HTMLImageElement>(null);
+  const { reward } = useReward(avatarRewardRef, 'hearts', {
+    particleCount: 40,
+    spread: 50,
+    elementSize: 25,
+    effects: { pulse: true },
+  });
+
+  return (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        reward();
+        onSelect();
+      }}
+      aria-label={`View ${name}'s full avatar`}
+      className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400"
+    >
+      <img ref={avatarRewardRef} src={avatar} alt={`${name} avatar`} className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-cream-200 transition hover:ring-sage-400" />
+    </button>
+  );
 }
 
 export default function Dashboard({ events, expenses, venues, income }: DashboardProps) {
@@ -66,33 +97,6 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
   const [showExpenseBreakdown, setShowExpenseBreakdown] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string } | null>(null);
   const { language } = useLanguage();
-
-  useEffect(() => {
-    if (!selectedAvatar) return;
-
-    const defaults = {
-      spread: 360,
-      ticks: 220,
-      gravity: 0.25,
-      decay: 0.97,
-      startVelocity: 20,
-      origin: { x: 0.5, y: 0.52 },
-      zIndex: 60,
-      disableForReducedMotion: true,
-    };
-    const clover = confetti.shapeFromText({ text: '🍀', scalar: 1.2 });
-    const star = confetti.shapeFromText({ text: '⭐', scalar: 1.2 });
-    const heart = confetti.shapeFromText({ text: '❤️', scalar: 1.2 });
-    const colors = ['#d45f90', '#29cdff', '#78b84a', '#ff718d', '#fdcf6a'];
-
-    confetti({ ...defaults, particleCount: 45, scalar: 1.6, shapes: ['circle', 'square'], colors });
-    window.setTimeout(() => {
-      confetti({ ...defaults, particleCount: 36, scalar: 2.4, shapes: [clover, star, heart] });
-    }, 250);
-    window.setTimeout(() => {
-      confetti({ ...defaults, particleCount: 32, scalar: 2.6, shapes: [clover, star, heart] });
-    }, 500);
-  }, [selectedAvatar]);
 
   return (
     <div className="space-y-6">
@@ -195,17 +199,11 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                 {[{ name: 'Jann', avatar: '/jann.jpg' }, { name: 'Jenn', avatar: '/jenn.jpg' }, { name: 'Jena', avatar: '/jena.jpg' }].map(({ name, avatar }) => (
                   <div key={name} className="flex min-w-0 items-center justify-between gap-2 rounded-xl bg-cream-50 px-3 py-3 sm:px-4">
                     <span className="flex min-w-0 shrink-0 items-center gap-2 text-sm font-medium text-slatey-700">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setSelectedAvatar({ name, avatar });
-                        }}
-                        aria-label={`View ${name}'s full avatar`}
-                        className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400"
-                      >
-                        <img src={avatar} alt={`${name} avatar`} className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-cream-200 transition hover:ring-sage-400" />
-                      </button>
+                      <FounderAvatarButton
+                        name={name}
+                        avatar={avatar}
+                        onSelect={() => setSelectedAvatar({ name, avatar })}
+                      />
                       {name}
                     </span>
                     <span className={`shrink-0 text-sm font-bold ${
@@ -326,16 +324,16 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                           <p className="font-medium text-slatey-700 truncate max-w-[140px]">{e.name}</p>
                           <p className="text-xs text-slatey-400">{formatDate(e.date)}</p>
                         </td>
-                        <td className="py-2.5 text-right text-sage-600 font-semibold hidden sm:table-cell">
+                        <td className="py-2.5 text-right text-sage-600 font-semibold tabular-nums hidden sm:table-cell">
                           {formatCurrency(calc.entranceRevenue)}
                         </td>
-                        <td className="py-2.5 text-right text-coral-500 font-semibold hidden sm:table-cell">
+                        <td className="py-2.5 text-right text-coral-500 font-semibold tabular-nums hidden sm:table-cell">
                           {formatCurrency(eventExpenses)}
                         </td>
-                        <td className={`py-2.5 text-right font-bold ${calc.netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'}`}>
+                        <td className={`py-2.5 text-right font-bold tabular-nums ${calc.netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'}`}>
                           {formatCurrency(calc.netProfit)}
                         </td>
-                        <td className="py-2.5 text-right text-slatey-500 hidden xs:table-cell">
+                        <td className="py-2.5 text-right text-slatey-500 tabular-nums hidden xs:table-cell">
                           {calc.fillRate.toFixed(0)}%
                         </td>
                       </tr>
@@ -346,10 +344,10 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                   <tfoot>
                     <tr className="border-t border-cream-300 text-xs font-bold text-slatey-600">
                       <td className="pt-2.5">Total</td>
-                      <td className="pt-2.5 text-right text-sage-600 hidden sm:table-cell">{formatCurrency(totalRevenue)}</td>
-                      <td className="pt-2.5 text-right text-coral-500 hidden sm:table-cell">{formatCurrency(totalExpenseCosts)}</td>
-                      <td className={`pt-2.5 text-right ${netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'}`}>{formatCurrency(netProfit)}</td>
-                      <td className="pt-2.5 text-right text-slatey-500 hidden xs:table-cell">{fillRate.toFixed(0)}%</td>
+                      <td className="pt-2.5 text-right text-sage-600 tabular-nums hidden sm:table-cell">{formatCurrency(totalRevenue)}</td>
+                      <td className="pt-2.5 text-right text-coral-500 tabular-nums hidden sm:table-cell">{formatCurrency(totalExpenseCosts)}</td>
+                      <td className={`pt-2.5 text-right tabular-nums ${netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'}`}>{formatCurrency(netProfit)}</td>
+                      <td className="pt-2.5 text-right text-slatey-500 tabular-nums hidden xs:table-cell">{fillRate.toFixed(0)}%</td>
                     </tr>
                   </tfoot>
                 )}
@@ -481,7 +479,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                     <div>
                       <p className="text-xs text-slatey-400">Net Profit</p>
                       <p
-                        className={`text-lg font-bold font-display ${
+                        className={`text-lg font-extrabold font-display tabular-nums ${
                           calc.netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'
                         }`}
                       >
@@ -506,7 +504,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-5">
           <p className="text-sm text-slatey-400">Income Received</p>
-          <p className="text-2xl font-bold font-display text-emeraldx-600 mt-1">
+          <p className="text-2xl font-extrabold font-display text-emeraldx-600 mt-1 tabular-nums">
             {formatCurrency(income.filter((i) => i.status === 'Received').reduce((s, i) => s + i.amount, 0))}
           </p>
           <p className="text-xs text-slatey-400 mt-1">
@@ -515,7 +513,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
         </div>
         <div className="card p-5">
           <p className="text-sm text-slatey-400">Income Expected</p>
-          <p className="text-2xl font-bold font-display text-amber-600 mt-1">
+          <p className="text-2xl font-extrabold font-display text-amber-600 mt-1 tabular-nums">
             {formatCurrency(income.filter((i) => i.status === 'Expected').reduce((s, i) => s + i.amount, 0))}
           </p>
           <p className="text-xs text-slatey-400 mt-1">
@@ -524,7 +522,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
         </div>
         <div className="card p-5">
           <p className="text-sm text-slatey-400">Pending Income</p>
-          <p className="text-2xl font-bold font-display text-slatey-500 mt-1">
+          <p className="text-2xl font-extrabold font-display text-slatey-500 mt-1 tabular-nums">
             {formatCurrency(income.filter((i) => i.status === 'Pending').reduce((s, i) => s + i.amount, 0))}
           </p>
           <p className="text-xs text-slatey-400 mt-1">
