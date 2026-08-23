@@ -5,12 +5,13 @@ import ProgressBar from '@/components/ProgressBar';
 import ExpenseModal from '@/components/ExpenseModal';
 import Modal from '@/components/Modal';
 import { PriorityBadge } from '@/components/Badges';
-import { Expense, ClubEvent } from '@/lib/types';
+import { Expense, ClubEvent, Venue } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
 
 interface ExpensesProps {
   expenses: Expense[];
   events: ClubEvent[];
+  venues: Venue[];
   saving: boolean;
   onSaveExpense: (e: Partial<Expense>, id?: string) => Promise<boolean>;
   onTogglePurchased: (id: string, current: boolean) => Promise<boolean>;
@@ -21,6 +22,7 @@ interface ExpensesProps {
 export default function Expenses({
   expenses,
   events,
+  venues,
   saving: _saving,
   onSaveExpense,
   onTogglePurchased,
@@ -43,6 +45,20 @@ export default function Expenses({
     return m;
   }, [events]);
 
+  const venueMap = useMemo(() => {
+    const m = new Map<string, string>();
+    venues.forEach((venue) => m.set(venue.id, venue.name || ''));
+    return m;
+  }, [venues]);
+
+  const normalize = (value?: string | null) => (value || '').trim().toLowerCase();
+
+  const eventVenueById = useMemo(() => {
+    const m = new Map<string, string>();
+    events.forEach((event) => m.set(event.id, normalize(event.venue_name)));
+    return m;
+  }, [events]);
+
   const types = useMemo(() => {
     const s = new Set<string>();
     expenses.forEach((e) => e.item_type && s.add(e.item_type));
@@ -52,15 +68,24 @@ export default function Expenses({
   const projectedExpenseValue = (expense: Expense) =>
     expense.is_purchased ? (expense.actual_cost || expense.estimated_cost || 0) : (expense.estimated_cost || 0);
 
+  const expenseMatchesEvent = (expense: Expense, eventId: string) => {
+    if (expense.event_id === eventId) return true;
+    if (!expense.venue_id) return false;
+
+    const selectedEventVenue = eventVenueById.get(eventId);
+    const expenseVenue = normalize(venueMap.get(expense.venue_id));
+    return Boolean(selectedEventVenue && expenseVenue && selectedEventVenue === expenseVenue);
+  };
+
   const filtered = expenses.filter((e) => {
     const isVenueCost = Boolean(e.venue_id);
     if (filterType !== 'all' && e.item_type !== filterType) return false;
-    if (filterEvent !== 'all' && e.event_id !== filterEvent) return false;
+    if (filterEvent !== 'all' && !expenseMatchesEvent(e, filterEvent)) return false;
     if (filterPurchased === 'purchased' && !e.is_purchased) return false;
     if (filterPurchased === 'pending' && e.is_purchased) return false;
     if (filterCostType === 'venue' && !isVenueCost) return false;
     if (filterCostType === 'supplies' && isVenueCost) return false;
-    const searchText = `${e.description} ${e.item_type || ''} ${e.notes || ''} ${e.event_id ? eventMap.get(e.event_id) || '' : ''}`.toLowerCase();
+    const searchText = `${e.description} ${e.item_type || ''} ${e.notes || ''} ${e.event_id ? eventMap.get(e.event_id) || '' : ''} ${e.venue_id ? venueMap.get(e.venue_id) || '' : ''}`.toLowerCase();
     if (search && !searchText.includes(search.toLowerCase())) return false;
     return true;
   });
@@ -99,12 +124,70 @@ export default function Expenses({
     );
   }, [filtered]);
 
+  const categoryChart = useMemo(() => {
+    const palette = ['#4f7f28', '#d45f90', '#f59e0b', '#0f766e', '#ea580c', '#64748b'];
+    const categoryShares = categoryTotals
+      .map(([name, totals]) => ({
+        name,
+        value: totals.paid + totals.remaining,
+      }))
+      .filter((entry) => entry.value > 0);
+
+    if (categoryShares.length === 0) {
+      return {
+        total: 0,
+        slices: [] as Array<{ name: string; value: number; color: string; percent: number }>,
+        gradient: 'conic-gradient(#e2e8f0 0deg 360deg)',
+      };
+    }
+
+    const maxSlices = 5;
+    const visible = categoryShares.slice(0, maxSlices);
+    const others = categoryShares.slice(maxSlices);
+    const otherTotal = others.reduce((sum, item) => sum + item.value, 0);
+    const finalShares = otherTotal > 0 ? [...visible, { name: 'Other', value: otherTotal }] : visible;
+    const total = finalShares.reduce((sum, item) => sum + item.value, 0);
+
+    let cursor = 0;
+    const slices = finalShares.map((item, index) => {
+      const percent = total > 0 ? (item.value / total) * 100 : 0;
+      const start = cursor;
+      const end = start + (percent / 100) * 360;
+      cursor = end;
+      return {
+        ...item,
+        color: palette[index % palette.length],
+        percent,
+        start,
+        end,
+      };
+    });
+
+    const gradient = `conic-gradient(${slices
+      .map((slice) => `${slice.color} ${slice.start}deg ${slice.end}deg`)
+      .join(', ')})`;
+
+    return { total, slices, gradient };
+  }, [categoryTotals]);
+
   // Totals grouped by event
   const eventTotals = useMemo(() => {
     const map = new Map<string, { name: string; estimated: number; actual: number; count: number }>();
     expenses.forEach((e) => {
-      const key = e.event_id || '__none__';
-      const name = (e.event_id && eventMap.get(e.event_id)) || 'No Event';
+      let key = e.event_id || '__none__';
+      let name = (e.event_id && eventMap.get(e.event_id)) || 'No Event';
+
+      if (!e.event_id && e.venue_id) {
+        const expenseVenue = normalize(venueMap.get(e.venue_id));
+        if (expenseVenue) {
+          const matchedEvent = events.find((event) => normalize(event.venue_name) === expenseVenue);
+          if (matchedEvent) {
+            key = matchedEvent.id;
+            name = matchedEvent.name;
+          }
+        }
+      }
+
       const existing = map.get(key) || { name, estimated: 0, actual: 0, count: 0 };
       map.set(key, {
         name,
@@ -114,7 +197,7 @@ export default function Expenses({
       });
     });
     return Array.from(map.values()).sort((a, b) => b.actual - a.actual);
-  }, [expenses, eventMap]);
+  }, [expenses, eventMap, venueMap, events]);
 
   const openNew = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (e: Expense) => { setEditing(e); setModalOpen(true); };
@@ -193,6 +276,38 @@ export default function Expenses({
             <p className="text-sm font-bold text-sage-600">{formatCurrency(filteredProjectedTotal)}</p>
           </div>
         </div>
+        {categoryChart.total > 0 && (
+          <div className="mb-5 rounded-2xl border border-cream-200 bg-white p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400">Category share</p>
+              <span className="text-xs text-slatey-400">Filtered expenses</span>
+            </div>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-[180px,1fr] gap-4 items-center">
+              <div className="flex justify-center">
+                <div className="relative h-36 w-36 rounded-full" style={{ background: categoryChart.gradient }}>
+                  <div className="absolute inset-5 rounded-full bg-white shadow-inner flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] uppercase tracking-wide text-slatey-400">Total</span>
+                    <span className="text-xs font-bold text-slatey-700">{formatCurrency(categoryChart.total)}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
+                {categoryChart.slices.map((slice) => (
+                  <div key={slice.name} className="rounded-xl border border-cream-200 bg-cream-50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: slice.color }} />
+                        <span className="text-xs font-semibold text-slatey-600 truncate">{slice.name}</span>
+                      </div>
+                      <span className="text-[11px] text-slatey-400">{slice.percent.toFixed(0)}%</span>
+                    </div>
+                    <p className="mt-1 text-xs font-bold text-slatey-700">{formatCurrency(slice.value)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         {categoryTotals.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

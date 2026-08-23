@@ -168,6 +168,7 @@ function App() {
               <Expenses
                 expenses={expenses}
                 events={events}
+                venues={venues}
                 saving={mutations.saving}
                 onSaveExpense={mutations.saveExpense}
                 onTogglePurchased={mutations.toggleExpensePurchased}
