@@ -26,16 +26,16 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
         <div className="overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-soft-sm">
           <img
             src="https://ih1.redbubble.net/image.5294122878.0092/pp,504x498-pad,600x600,f8f8f8.u5.jpg"
-            alt="Lucky Girls members artwork"
-            className="h-32 w-full object-cover sm:h-44"
+            alt="Lucky Girls participants artwork"
+            className="h-32 w-full object-fill sm:h-44"
           />
         </div>
 
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-xl font-semibold font-display text-slatey-700">Members</h2>
+            <h2 className="text-xl font-semibold font-display text-slatey-700">Participants</h2>
             <p className="text-sm text-slatey-400 mt-0.5">
-              {memberCount} total members · {admins} admins · {founders} founders
+              {memberCount} total participants · {admins} admins · {founders} founders
             </p>
           </div>
           <button
@@ -53,7 +53,7 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="card p-4">
             <Users size={18} className="text-sage-500 mb-2" />
-            <p className="text-xs text-slatey-400">Total Members</p>
+            <p className="text-xs text-slatey-400">Total Participants</p>
             <p className="text-lg font-bold text-slatey-700">{memberCount}</p>
           </div>
           <div className="card p-4">
@@ -72,8 +72,8 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
           <div className="card">
             <EmptyState
               icon={<Users size={28} />}
-              title="No members yet"
-              description="Add a member to track their role, number, email, and notes."
+              title="No participants yet"
+              description="Add a participant to track their role, number, email, and notes."
               action={
                 <button
                   onClick={() => {
@@ -82,7 +82,7 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
                   }}
                   className="btn-primary text-sm"
                 >
-                  <Plus size={18} /> Add member
+                  <Plus size={18} /> Add participant
                 </button>
               }
             />

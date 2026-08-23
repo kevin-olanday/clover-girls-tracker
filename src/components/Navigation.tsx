@@ -11,7 +11,7 @@ const tabs: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
   { key: 'events', label: 'Events', icon: CalendarDays },
   { key: 'expenses', label: 'Expenses', icon: ShoppingBag },
   { key: 'venues', label: 'Venues & Income', icon: Building2 },
-  { key: 'members', label: 'Members', icon: Users },
+  { key: 'members', label: 'Participants', icon: Users },
 ];
 
 export default function Navigation({ active, onChange }: NavProps) {

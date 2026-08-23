@@ -161,7 +161,7 @@ export default function Events({
 
                 <div className="mt-4 pt-4 border-t border-cream-200 space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400">Members attending</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400">Participants attending</p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">

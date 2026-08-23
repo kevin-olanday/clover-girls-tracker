@@ -51,7 +51,7 @@ export default function MemberModal({ open, onClose, onSave, editing }: MemberMo
       open={open}
       onClose={onClose}
       title={editing ? 'Edit Member' : 'Add Member'}
-      subtitle="Track club members and their contact details"
+      subtitle="Track participants and their contact details"
       size="lg"
       footer={
         <>
