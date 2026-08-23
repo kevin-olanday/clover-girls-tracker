@@ -46,7 +46,7 @@ export default function Modal({
         onClick={onClose}
       />
       <div
-        className={`relative w-full ${maxW} bg-white rounded-t-3xl sm:rounded-3xl shadow-soft-md animate-slide-up max-h-[92vh] flex flex-col`}
+        className={`relative w-full ${maxW} bg-white ${centered ? 'rounded-3xl' : 'rounded-t-3xl sm:rounded-3xl'} shadow-soft-md animate-slide-up max-h-[92vh] flex flex-col`}
       >
         <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-cream-200">
           <div>
