@@ -64,7 +64,7 @@ function App() {
   const [helpModalOpen, setHelpModalOpen] = useState(false);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const konamiBufferRef = useRef<string[]>([]);
-  const achievementImageRef = useRef<HTMLImageElement>(null);
+  const achievementImageRef = useRef<HTMLSpanElement>(null);
   const { reward } = useReward(achievementImageRef, 'stars', {
     particleCount: 70,
     spread: 120,
@@ -307,12 +307,14 @@ function App() {
           <div id="achievement" onClick={reward} className="cursor-pointer text-lg font-semibold text-sage-600">
             🏆 Achievement Unlocked!
           </div>
-          <img
-            ref={achievementImageRef}
-            src="https://i.pinimg.com/originals/86/8e/5b/868e5b65b040abdf8688945fde0e4c9e.gif"
-            alt="Lucky Girls surprise"
-            className="mx-auto w-full max-w-md rounded-2xl shadow-soft"
-          />
+          <div className="relative flex justify-center">
+            <img
+              src="https://i.pinimg.com/originals/86/8e/5b/868e5b65b040abdf8688945fde0e4c9e.gif"
+              alt="Lucky Girls surprise"
+              className="mx-auto w-full max-w-md rounded-2xl shadow-soft"
+            />
+            <span ref={achievementImageRef} className="absolute left-1/2 top-1/2 z-20 h-px w-px -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
+          </div>
           <p className="text-lg text-slatey-700 leading-relaxed">
             Made with ❤️ by <button type="button" onClick={() => setCreditModalOpen(true)} className="font-semibold text-sage-600 underline decoration-sage-300 underline-offset-2 hover:text-sage-700">Kevin Olanday</button> for all the Lucky Girls out there.
           </p>
