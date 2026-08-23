@@ -9,6 +9,7 @@ interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   size?: 'sm' | 'md' | 'lg';
+  centered?: boolean;
 }
 
 export default function Modal({
@@ -19,6 +20,7 @@ export default function Modal({
   children,
   footer,
   size = 'md',
+  centered = false,
 }: ModalProps) {
   useEffect(() => {
     if (!open) return;
@@ -38,7 +40,7 @@ export default function Modal({
   const maxW = size === 'sm' ? 'max-w-md' : size === 'lg' ? 'max-w-3xl' : 'max-w-xl';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className={`fixed inset-0 z-50 flex justify-center p-4 ${centered ? 'items-center' : 'items-end sm:items-center'}`}>
       <div
         className="absolute inset-0 bg-slatey-900/40 backdrop-blur-sm animate-fade-in"
         onClick={onClose}

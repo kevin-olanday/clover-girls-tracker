@@ -154,12 +154,12 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           </button>
 
           {showProfitSplit && (
-            <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-cream-200 bg-white p-6 shadow-soft-md">
+            <div className="absolute left-0 right-auto top-full z-20 mt-2 w-[min(300px,calc(100vw-2rem))] rounded-2xl border border-cream-200 bg-white p-4 shadow-soft-md sm:right-0 sm:w-auto sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400 mb-4">Profit ÷ 3 founders</p>
               <div className="space-y-3">
                 {[{ name: 'Jann', avatar: '/jann.jpg' }, { name: 'Jenn', avatar: '/jenn.jpg' }, { name: 'Jena', avatar: '/jena.jpg' }].map(({ name, avatar }) => (
-                  <div key={name} className="flex items-center justify-between rounded-xl bg-cream-50 px-4 py-3">
-                    <span className="flex items-center gap-3 text-sm font-medium text-slatey-700">
+                  <div key={name} className="flex min-w-0 items-center justify-between gap-2 rounded-xl bg-cream-50 px-3 py-3 sm:px-4">
+                    <span className="flex min-w-0 shrink-0 items-center gap-2 text-sm font-medium text-slatey-700">
                       <button
                         type="button"
                         onClick={(event) => {
@@ -169,11 +169,11 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                         aria-label={`View ${name}'s full avatar`}
                         className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400"
                       >
-                        <img src={avatar} alt={`${name} avatar`} className="h-12 w-12 rounded-full object-cover ring-2 ring-cream-200 transition hover:ring-sage-400" />
+                        <img src={avatar} alt={`${name} avatar`} className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-cream-200 transition hover:ring-sage-400" />
                       </button>
                       {name}
                     </span>
-                    <span className={`text-sm font-bold ${
+                    <span className={`shrink-0 text-sm font-bold ${
                       profitPerFounder >= 0 ? 'text-emeraldx-600' : 'text-coral-500'
                     }`}>
                       {formatCurrency(profitPerFounder)}
@@ -206,6 +206,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           </span>
         }
         size="md"
+        centered
       >
         {selectedAvatar && (
           <div className="relative flex justify-center">
