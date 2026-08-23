@@ -198,24 +198,24 @@ function App() {
           </div>
 
           {[{
-            title: '1. Create an event',
-            body: 'Go to the Events tab and add a new event using the event name, date, venue, capacity, attendance, and payment details.',
-            href: null,
+            title: '1. Add participants',
+            body: 'Go to the Participants tab to add club members individually or import them in bulk via CSV. These participants can then be linked to specific events.',
+            targetTab: 'members'
+          }, {
+            title: '2. Create an event',
+            body: 'Go to the Events tab and add a new event with its name, date, venue, capacity, attendance, and payment details. Link participants and import attendees via CSV directly from each event card.',
             targetTab: 'events'
           }, {
-            title: '2. Track all expenses',
+            title: '3. Track all expenses',
             body: 'Use the Expenses tab to record actual costs, estimated prices, purchase status, and notes for every item.',
-            href: null,
             targetTab: 'expenses'
           }, {
-            title: '3. Manage venue and income details',
+            title: '4. Manage venue and income details',
             body: 'Use Venues & Income to log venue bookings, deposits, payment batches, and the current status of expected or received income.',
-            href: null,
             targetTab: 'venues'
           }, {
-            title: '4. Review the dashboard',
+            title: '5. Review the dashboard',
             body: 'Check the Dashboard to monitor revenue, registration fill rate, total expenses, profit margin, and budget variance in one place.',
-            href: null,
             targetTab: 'dashboard'
           }].map((step) => (
             <button

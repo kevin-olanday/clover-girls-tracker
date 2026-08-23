@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Mail, Phone, Plus, Pencil, Trash2, Users, BadgeCheck, FileUp } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, BadgeCheck, FileUp } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import MemberModal from '@/components/MemberModal';
 import CsvImportModal, { CsvParticipantRow } from '@/components/CsvImportModal';
@@ -92,57 +92,82 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember,
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {members.map((member) => (
-              <div key={member.id} className="card p-5 group hover:shadow-soft-md transition-shadow">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold text-slatey-700 text-lg">
+          <div className="card overflow-hidden">
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <table className="w-full text-sm">
+                <thead className="bg-cream-50 text-xs text-slatey-400 uppercase tracking-wide">
+                  <tr>
+                    <th className="text-left font-semibold px-5 py-3">Name</th>
+                    <th className="text-left font-semibold px-5 py-3">Role</th>
+                    <th className="text-left font-semibold px-5 py-3">Phone</th>
+                    <th className="text-left font-semibold px-5 py-3">Email</th>
+                    <th className="px-5 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-cream-200">
+                  {members.map((member) => (
+                    <tr key={member.id} className="group hover:bg-cream-50/50 transition">
+                      <td className="px-5 py-3">
+                        <p className="font-semibold text-slatey-700">{member.first_name} {member.last_name}</p>
+                        {member.notes && (
+                          <p className="text-xs text-slatey-400 truncate max-w-xs mt-0.5">{member.notes}</p>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-slatey-500">{member.role || 'Member'}</td>
+                      <td className="px-5 py-3 text-slatey-500">{member.phone_number || '—'}</td>
+                      <td className="px-5 py-3 text-slatey-500">{member.email || '—'}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => { setEditingMember(member); setMemberModal(true); }}
+                            className="rounded-lg p-1.5 text-slatey-400 hover:bg-cream-100 hover:text-sage-600 transition"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteMember(member)}
+                            className="rounded-lg p-1.5 text-slatey-400 hover:bg-coral-50 hover:text-coral-500 transition"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile list */}
+            <div className="sm:hidden divide-y divide-cream-200">
+              {members.map((member) => (
+                <div key={member.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slatey-700">
                       {member.first_name} {member.last_name}
-                    </h3>
-                    <p className="text-sm text-sage-600 mt-1">{member.role || 'Member'}</p>
+                    </p>
+                    <p className="text-xs text-slatey-400 mt-0.5">
+                      {member.role || 'Member'}{member.phone_number ? ` · ${member.phone_number}` : ''}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
-                      onClick={() => {
-                        setEditingMember(member);
-                        setMemberModal(true);
-                      }}
-                      className="rounded-lg p-2 text-slatey-400 hover:bg-cream-100 hover:text-sage-600 transition"
+                      onClick={() => { setEditingMember(member); setMemberModal(true); }}
+                      className="rounded-lg p-1.5 text-slatey-400 hover:bg-cream-100 hover:text-sage-600 transition"
                     >
-                      <Pencil size={15} />
+                      <Pencil size={14} />
                     </button>
                     <button
                       onClick={() => setDeleteMember(member)}
-                      className="rounded-lg p-2 text-slatey-400 hover:bg-coral-50 hover:text-coral-500 transition"
+                      className="rounded-lg p-1.5 text-slatey-400 hover:bg-coral-50 hover:text-coral-500 transition"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
-
-                <div className="mt-4 space-y-2 text-sm text-slatey-500">
-                  {member.phone_number && (
-                    <div className="flex items-center gap-2">
-                      <Phone size={14} className="text-slatey-400" />
-                      <span>{member.phone_number}</span>
-                    </div>
-                  )}
-                  {member.email && (
-                    <div className="flex items-center gap-2 break-all">
-                      <Mail size={14} className="text-slatey-400" />
-                      <span>{member.email}</span>
-                    </div>
-                  )}
-                </div>
-
-                {member.notes && (
-                  <p className="mt-4 border-t border-cream-200 pt-3 text-sm text-slatey-400 italic">
-                    {member.notes}
-                  </p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </section>
