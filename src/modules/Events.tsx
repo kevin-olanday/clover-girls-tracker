@@ -107,7 +107,7 @@ export default function Events({
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => openEdit(e)}
                       className="rounded-lg p-2 text-slatey-400 hover:bg-cream-100 hover:text-sage-600 transition"

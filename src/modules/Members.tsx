@@ -98,7 +98,7 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
                     </h3>
                     <p className="text-sm text-sage-600 mt-1">{member.role || 'Member'}</p>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => {
                         setEditingMember(member);

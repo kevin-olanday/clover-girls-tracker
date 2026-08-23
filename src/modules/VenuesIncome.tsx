@@ -147,7 +147,7 @@ export default function VenuesIncome({
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => {
                         setEditingVenue(v);
@@ -314,7 +314,7 @@ export default function VenuesIncome({
                         <IncomeStatusBadge status={i.status} />
                       </td>
                       <td className="px-5 py-3">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-1">
                           <select
                             value={i.status}
                             onChange={(e) => onUpdateIncomeStatus(i.id, e.target.value as IncomeStatus)}

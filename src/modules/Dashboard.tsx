@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DollarSign, TrendingDown, TrendingUp, Users, AlertTriangle, CalendarDays, MapPin, Receipt, Tag } from 'lucide-react';
 import KPICard from '@/components/KPICard';
 import ProgressBar from '@/components/ProgressBar';
@@ -52,6 +53,9 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
     .sort((a, b) => (b.actual_cost || b.estimated_cost || 0) - (a.actual_cost || a.estimated_cost || 0))
     .slice(0, 5);
 
+  const profitPerFounder = netProfit / 3;
+  const [showProfitSplit, setShowProfitSplit] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* KPI Grid */}
@@ -70,13 +74,58 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           icon={<TrendingDown size={22} />}
           accent="coral"
         />
-        <KPICard
-          label="Net Profit"
-          value={formatCurrency(netProfit)}
-          sublabel={`${margin.toFixed(1)}% margin`}
-          icon={netProfit >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
-          accent={netProfit >= 0 ? 'emerald' : 'coral'}
-        />
+
+        {/* Net Profit — click to reveal per-founder split */}
+        <div className="relative">
+          {showProfitSplit && (
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setShowProfitSplit(false)}
+              aria-hidden
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => setShowProfitSplit((v) => !v)}
+            className="card p-5 w-full text-left animate-slide-up hover:shadow-soft-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-300"
+            aria-expanded={showProfitSplit}
+            aria-label="Net profit — tap to see founder split"
+          >
+            <div className="flex items-start justify-between">
+              <div className={`rounded-xl p-2.5 ring-4 ${
+                netProfit >= 0
+                  ? 'bg-emeraldx-50 text-emeraldx-600 ring-emeraldx-100'
+                  : 'bg-coral-50 text-coral-500 ring-coral-100'
+              }`}>
+                {netProfit >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
+              </div>
+              <span className="text-xs font-semibold text-slatey-400 mt-1">tap to split ↓</span>
+            </div>
+            <p className="mt-4 text-2xl font-bold font-display text-slatey-700 tracking-tight">
+              {formatCurrency(netProfit)}
+            </p>
+            <p className="text-sm text-slatey-400 mt-1">Net Profit</p>
+            <p className="text-xs text-slatey-300 mt-1">{margin.toFixed(1)}% margin</p>
+          </button>
+
+          {showProfitSplit && (
+            <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-2xl border border-cream-200 bg-white p-4 shadow-soft-md">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slatey-400 mb-3">Profit ÷ 3 founders</p>
+              <div className="space-y-2">
+                {['Jann', 'Jenn', 'Jena'].map((name) => (
+                  <div key={name} className="flex items-center justify-between rounded-xl bg-cream-50 px-3 py-2">
+                    <span className="text-sm font-medium text-slatey-700">🍀 {name}</span>
+                    <span className={`text-sm font-bold ${
+                      profitPerFounder >= 0 ? 'text-emeraldx-600' : 'text-coral-500'
+                    }`}>
+                      {formatCurrency(profitPerFounder)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <KPICard
           label="Registration Fill Rate"
           value={`${fillRate.toFixed(0)}%`}
@@ -140,10 +189,10 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                 <thead>
                   <tr className="text-xs text-slatey-400 border-b border-cream-200">
                     <th className="text-left pb-2 font-medium">Event</th>
-                    <th className="text-right pb-2 font-medium">Revenue</th>
-                    <th className="text-right pb-2 font-medium">Expenses</th>
+                    <th className="text-right pb-2 font-medium hidden sm:table-cell">Revenue</th>
+                    <th className="text-right pb-2 font-medium hidden sm:table-cell">Expenses</th>
                     <th className="text-right pb-2 font-medium">Net</th>
-                    <th className="text-right pb-2 font-medium">Fill</th>
+                    <th className="text-right pb-2 font-medium hidden xs:table-cell">Fill</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-cream-100">
@@ -158,16 +207,16 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                           <p className="font-medium text-slatey-700 truncate max-w-[140px]">{e.name}</p>
                           <p className="text-xs text-slatey-400">{formatDate(e.date)}</p>
                         </td>
-                        <td className="py-2.5 text-right text-sage-600 font-semibold">
+                        <td className="py-2.5 text-right text-sage-600 font-semibold hidden sm:table-cell">
                           {formatCurrency(calc.entranceRevenue)}
                         </td>
-                        <td className="py-2.5 text-right text-coral-500 font-semibold">
+                        <td className="py-2.5 text-right text-coral-500 font-semibold hidden sm:table-cell">
                           {formatCurrency(eventExpenses)}
                         </td>
                         <td className={`py-2.5 text-right font-bold ${calc.netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'}`}>
                           {formatCurrency(calc.netProfit)}
                         </td>
-                        <td className="py-2.5 text-right text-slatey-500">
+                        <td className="py-2.5 text-right text-slatey-500 hidden xs:table-cell">
                           {calc.fillRate.toFixed(0)}%
                         </td>
                       </tr>
@@ -178,10 +227,10 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
                   <tfoot>
                     <tr className="border-t border-cream-300 text-xs font-bold text-slatey-600">
                       <td className="pt-2.5">Total</td>
-                      <td className="pt-2.5 text-right text-sage-600">{formatCurrency(totalRevenue)}</td>
-                      <td className="pt-2.5 text-right text-coral-500">{formatCurrency(totalExpenseCosts)}</td>
+                      <td className="pt-2.5 text-right text-sage-600 hidden sm:table-cell">{formatCurrency(totalRevenue)}</td>
+                      <td className="pt-2.5 text-right text-coral-500 hidden sm:table-cell">{formatCurrency(totalExpenseCosts)}</td>
                       <td className={`pt-2.5 text-right ${netProfit >= 0 ? 'text-emeraldx-600' : 'text-coral-500'}`}>{formatCurrency(netProfit)}</td>
-                      <td className="pt-2.5 text-right text-slatey-500">{fillRate.toFixed(0)}%</td>
+                      <td className="pt-2.5 text-right text-slatey-500 hidden xs:table-cell">{fillRate.toFixed(0)}%</td>
                     </tr>
                   </tfoot>
                 )}
