@@ -20,7 +20,7 @@ interface DashboardProps {
 interface FounderAvatarButtonProps {
   name: string;
   avatar: string;
-  onSelect: (replayReward: () => Promise<void>) => void;
+  onSelect: (replayReward: () => void) => void;
 }
 
 function FounderAvatarButton({ name, avatar, onSelect }: FounderAvatarButtonProps) {
@@ -103,7 +103,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
   const profitPerFounder = netProfit / 3;
   const [showProfitSplit, setShowProfitSplit] = useState(false);
   const [showExpenseBreakdown, setShowExpenseBreakdown] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string; replayReward: () => Promise<void> } | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<{ name: string; avatar: string; replayReward: () => void } | null>(null);
   const { language } = useLanguage();
 
   return (

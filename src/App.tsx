@@ -81,6 +81,11 @@ function App() {
   };
 
   useEffect(() => {
+    if (sessionStorage.getItem('clover-demo-mode') === 'true') {
+      setCurrentUser(null);
+      return;
+    }
+
     supabase?.auth.getSession().then(({ data: { session } }) => {
       setCurrentUser(session?.user ?? null);
     });
@@ -91,7 +96,9 @@ function App() {
   }, []);
 
   const handleSignOut = async () => {
+    sessionStorage.removeItem('clover-demo-mode');
     await supabase?.auth.signOut();
+    window.location.reload();
   };
 
   useEffect(() => {

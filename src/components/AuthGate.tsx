@@ -14,7 +14,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (!supabase) {
+    const demoMode = sessionStorage.getItem('clover-demo-mode') === 'true';
+    if (!supabase || demoMode) {
       setState('ready'); // demo mode — skip auth
       return;
     }
@@ -79,6 +80,11 @@ function LoginForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const enterDemoMode = () => {
+    sessionStorage.setItem('clover-demo-mode', 'true');
+    window.location.reload();
   };
 
   return (
@@ -159,6 +165,12 @@ function LoginForm() {
               )}
             </button>
           </form>
+          <div className="mt-5 border-t border-cream-200 pt-5 text-center">
+            <p className="text-xs text-slatey-400">Just browsing?</p>
+            <button type="button" onClick={enterDemoMode} className="mt-2 text-sm font-semibold text-sage-600 hover:text-sage-700">
+              Continue with demo data
+            </button>
+          </div>
         </div>
       </div>
     </div>

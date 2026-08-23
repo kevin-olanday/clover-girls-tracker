@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { ClubEvent, Expense, Venue, IncomeRecord, Member, EventMemberLink } from './types';
+import { mockEvents, mockExpenses, mockVenues, mockIncome, mockMembers, mockEventMembers } from './mockData';
 
 type ConnectionState = 'connecting' | 'connected' | 'error';
 
@@ -17,13 +18,14 @@ export function useClubData() {
   );
 
   const loadAll = useCallback(async () => {
-    if (!supabase) {
-      setEvents([]);
-      setExpenses([]);
-      setVenues([]);
-      setIncome([]);
-      setMembers([]);
-      setEventMembers([]);
+    const demoMode = typeof window !== 'undefined' && sessionStorage.getItem('clover-demo-mode') === 'true';
+    if (!supabase || demoMode) {
+      setEvents(mockEvents);
+      setExpenses(mockExpenses);
+      setVenues(mockVenues);
+      setIncome(mockIncome);
+      setMembers(mockMembers);
+      setEventMembers(mockEventMembers);
       setConnection('error');
       setLoading(false);
       return;

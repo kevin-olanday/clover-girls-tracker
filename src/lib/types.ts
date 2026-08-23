@@ -26,6 +26,7 @@ export interface Expense {
   actual_cost: number;
   is_purchased: boolean;
   item_type: string | null;
+  quantity_details?: string | null;
   item_link: string | null;
   notes: string | null;
   created_by_name: string | null;
