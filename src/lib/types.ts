@@ -13,6 +13,7 @@ export interface ClubEvent {
   food_cost_per_girl: number;
   other_expenses: number;
   created_at: string;
+  created_by_name: string | null;
 }
 
 export interface Expense {
@@ -26,6 +27,7 @@ export interface Expense {
   item_type: string | null;
   item_link: string | null;
   notes: string | null;
+  created_by_name: string | null;
 }
 
 export interface Venue {
@@ -42,6 +44,7 @@ export interface Venue {
   status: VenueStatus;
   availability: string | null;
   notes: string | null;
+  created_by_name: string | null;
 }
 
 export interface IncomeRecord {
@@ -54,6 +57,7 @@ export interface IncomeRecord {
   batch: string | null;
   status: IncomeStatus;
   notes: string | null;
+  created_by_name: string | null;
 }
 
 export interface Member {
@@ -65,6 +69,7 @@ export interface Member {
   email: string | null;
   notes: string | null;
   created_at: string;
+  created_by_name: string | null;
 }
 
 export interface EventMemberLink {

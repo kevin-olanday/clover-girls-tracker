@@ -26,9 +26,9 @@ export default function KPICard({
 }: KPICardProps) {
   const a = accents[accent];
   return (
-    <div className="card p-5 animate-slide-up hover:shadow-soft-md transition-shadow">
+    <div className="card p-4 sm:p-5 animate-slide-up hover:shadow-soft-md transition-shadow">
       <div className="flex items-start justify-between">
-        <div className={`rounded-xl ${a.bg} ${a.text} p-2.5 ring-4 ${a.ring}`}>{icon}</div>
+        <div className={`rounded-xl ${a.bg} ${a.text} p-2 sm:p-2.5 ring-4 ${a.ring}`}>{icon}</div>
         {trend && (
           <span
             className={`text-xs font-semibold ${trend.positive ? 'text-emeraldx-600' : 'text-coral-500'}`}
@@ -37,11 +37,11 @@ export default function KPICard({
           </span>
         )}
       </div>
-      <p className="mt-4 text-2xl font-bold font-display text-slatey-700 tracking-tight">
+      <p className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold font-display text-slatey-700 tracking-tight">
         {value}
       </p>
-      <p className="text-sm text-slatey-400 mt-1">{label}</p>
-      {sublabel && <p className="text-xs text-slatey-300 mt-1">{sublabel}</p>}
+      <p className="text-xs sm:text-sm text-slatey-400 mt-1">{label}</p>
+      {sublabel && <p className="hidden sm:block text-xs text-slatey-300 mt-1">{sublabel}</p>}
     </div>
   );
 }

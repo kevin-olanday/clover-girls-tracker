@@ -59,7 +59,7 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
   return (
     <div className="space-y-6">
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard
           label="Total Revenue"
           value={formatCurrency(totalRevenue)}

@@ -7,11 +7,14 @@ import Events from '@/modules/Events';
 import Expenses from '@/modules/Expenses';
 import VenuesIncome from '@/modules/VenuesIncome';
 import Members from '@/modules/Members';
+import AuthGate from '@/components/AuthGate';
 import { useClubData } from '@/lib/useClubData';
 import { useMutations } from '@/lib/useMutations';
+import { supabase } from '@/lib/supabase';
 import { TabKey } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import Modal from '@/components/Modal';
+import type { User } from '@supabase/supabase-js';
 
 const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
@@ -51,12 +54,27 @@ const LUCK_QUOTES = [
 function App() {
   const [tab, setTab] = useState<TabKey>('dashboard');
   const [luckyQuote, setLuckyQuote] = useState(LUCK_QUOTES[0]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const { events, expenses, venues, income, members, eventMembers, loading, connection, reload } = useClubData();
-  const mutations = useMutations(reload);
+  const mutations = useMutations(reload, currentUser?.user_metadata?.name ?? null);
   const [headerEventModal, setHeaderEventModal] = useState(false);
   const [secretModalOpen, setSecretModalOpen] = useState(false);
   const [helpModalOpen, setHelpModalOpen] = useState(false);
   const konamiBufferRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    supabase?.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ?? null);
+    });
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((_, session) => {
+      setCurrentUser(session?.user ?? null);
+    }) ?? { data: { subscription: { unsubscribe: () => {} } } };
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase?.auth.signOut();
+  };
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * LUCK_QUOTES.length);
@@ -83,6 +101,7 @@ function App() {
   }, []);
 
   return (
+    <AuthGate>
     <div className="min-h-screen bg-cream-50">
       <Header
         connection={connection}
@@ -92,6 +111,8 @@ function App() {
           setTab('events');
           setHeaderEventModal(true);
         }}
+        user={currentUser}
+        onSignOut={handleSignOut}
       />
       <Navigation active={tab} onChange={setTab} />
 
@@ -279,6 +300,7 @@ function App() {
         }}
       />
     </div>
+    </AuthGate>
   );
 }
 

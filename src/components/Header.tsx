@@ -1,14 +1,17 @@
 import { useRef } from 'react';
-import { Clover, HelpCircle, Plus, Wifi, WifiOff } from 'lucide-react';
+import { Clover, HelpCircle, Plus, Wifi, WifiOff, LogOut } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
   connection: 'connecting' | 'connected' | 'error';
   onNewEvent: () => void;
   onSecret: () => void;
   onHelp: () => void;
+  user?: User | null;
+  onSignOut?: () => void;
 }
 
-export default function Header({ connection, onNewEvent, onSecret, onHelp }: HeaderProps) {
+export default function Header({ connection, onNewEvent, onSecret, onHelp, user, onSignOut }: HeaderProps) {
   const connected = connection === 'connected';
   const tapCountRef = useRef(0);
   const lastTapRef = useRef(0);
@@ -84,6 +87,21 @@ export default function Header({ connection, onNewEvent, onSecret, onHelp }: Hea
               <Plus size={18} />
               <span className="hidden sm:inline">New Event</span>
             </button>
+            {user && onSignOut && (
+              <div className="flex items-center gap-2 pl-1 border-l border-cream-200">
+                <span className="hidden sm:block text-xs font-semibold text-slatey-600">
+                  {user.user_metadata?.name ?? user.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={onSignOut}
+                  title="Sign out"
+                  className="rounded-full p-1.5 text-slatey-400 hover:bg-cream-100 hover:text-coral-500 transition"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

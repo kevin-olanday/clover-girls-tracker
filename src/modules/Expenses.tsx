@@ -251,6 +251,14 @@ export default function Expenses({
                     </div>
                     {e.item_type && <span className="pill bg-cream-100 text-slatey-500 text-xs mt-1 sm:hidden">{e.item_type}</span>}
                     {e.notes && <p className="text-xs text-slatey-400 mt-0.5 italic">{e.notes}</p>}
+                    {e.created_by_name && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-cream-100 px-2 py-0.5 text-xs font-medium text-slatey-500">
+                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sage-200 text-[9px] font-bold text-sage-700">
+                          {e.created_by_name[0]}
+                        </span>
+                        {e.created_by_name}
+                      </span>
+                    )}
                     {e.item_link && (
                       <a href={e.item_link} target="_blank" rel="noopener noreferrer" className="mt-0.5 inline-flex items-center gap-1 text-xs text-sage-500 hover:text-sage-700 transition sm:hidden">
                         <ExternalLink size={11} /> Link

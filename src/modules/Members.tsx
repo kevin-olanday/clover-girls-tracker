@@ -113,6 +113,14 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember,
                         {member.notes && (
                           <p className="text-xs text-slatey-400 truncate max-w-xs mt-0.5">{member.notes}</p>
                         )}
+                        {member.created_by_name && (
+                          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-cream-100 px-2 py-0.5 text-xs font-medium text-slatey-500">
+                            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sage-200 text-[9px] font-bold text-sage-700">
+                              {member.created_by_name[0]}
+                            </span>
+                            {member.created_by_name}
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-3 text-slatey-500">{member.role || 'Member'}</td>
                       <td className="px-5 py-3 text-slatey-500">{member.phone_number || '—'}</td>

@@ -1,10 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { ClubEvent, Expense, Venue, IncomeRecord, Member, EventMemberLink } from '@/lib/types';
 import toast from 'react-hot-toast';
 
-export function useMutations(reload: () => void) {
+export function useMutations(reload: () => void, createdByName?: string | null) {
   const [saving, setSaving] = useState(false);
+  // Use a ref so callbacks don't need re-memoisation when the user loads
+  const byRef = useRef(createdByName);
+  byRef.current = createdByName;
 
   const wrap = useCallback(async <T,>(fn: () => Promise<T>, successMsg: string): Promise<boolean> => {
     setSaving(true);
@@ -32,7 +35,7 @@ export function useMutations(reload: () => void) {
         if (id) {
           return supabase.from('events').update(e).eq('id', id);
         }
-        return supabase.from('events').insert(e);
+        return supabase.from('events').insert({ ...e, created_by_name: byRef.current || null });
       }, id ? 'Event updated' : 'Event created'),
     [wrap]
   );
@@ -51,7 +54,7 @@ export function useMutations(reload: () => void) {
       wrap(async () => {
         if (!supabase) return;
         if (id) return supabase.from('expenses').update(e).eq('id', id);
-        return supabase.from('expenses').insert(e);
+        return supabase.from('expenses').insert({ ...e, created_by_name: byRef.current || null });
       }, id ? 'Expense updated' : 'Expense added'),
     [wrap]
   );
@@ -93,7 +96,7 @@ export function useMutations(reload: () => void) {
       wrap(async () => {
         if (!supabase) return;
         if (id) return supabase.from('venues').update(v).eq('id', id);
-        return supabase.from('venues').insert(v);
+        return supabase.from('venues').insert({ ...v, created_by_name: byRef.current || null });
       }, id ? 'Venue updated' : 'Venue added'),
     [wrap]
   );
@@ -131,7 +134,7 @@ export function useMutations(reload: () => void) {
       wrap(async () => {
         if (!supabase) return;
         if (id) return supabase.from('income_records').update(i).eq('id', id);
-        return supabase.from('income_records').insert(i);
+        return supabase.from('income_records').insert({ ...i, created_by_name: byRef.current || null });
       }, id ? 'Income record updated' : 'Income record added'),
     [wrap]
   );
@@ -169,7 +172,7 @@ export function useMutations(reload: () => void) {
       wrap(async () => {
         if (!supabase) return;
         if (id) return supabase.from('members').update(m).eq('id', id);
-        return supabase.from('members').insert(m);
+        return supabase.from('members').insert({ ...m, created_by_name: byRef.current || null });
       }, id ? 'Member updated' : 'Member added'),
     [wrap]
   );
@@ -235,6 +238,7 @@ export function useMutations(reload: () => void) {
               phone_number: row.phone_number || null,
               email: row.email || null,
               notes: row.notes || null,
+              created_by_name: byRef.current || null,
             })
             .select('id')
             .single();
@@ -250,6 +254,7 @@ export function useMutations(reload: () => void) {
             email: row.email || null,
             notes: row.notes || null,
             created_at: new Date().toISOString(),
+            created_by_name: byRef.current || null,
           });
         }
 
@@ -306,6 +311,7 @@ export function useMutations(reload: () => void) {
             phone_number: row.phone_number || null,
             email: row.email || null,
             notes: row.notes || null,
+            created_by_name: byRef.current || null,
           })
           .select('id')
           .single();
@@ -320,6 +326,7 @@ export function useMutations(reload: () => void) {
           email: row.email || null,
           notes: row.notes || null,
           created_at: new Date().toISOString(),
+          created_by_name: byRef.current || null,
         });
       }
 
