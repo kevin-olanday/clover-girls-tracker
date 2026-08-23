@@ -157,6 +157,7 @@ function App() {
                 saving={mutations.saving}
                 onSaveMember={mutations.saveMember}
                 onDeleteMember={mutations.deleteMember}
+                onImportMembers={(rows) => mutations.importMembers(rows, members)}
               />
             )}
           </div>

@@ -15,8 +15,8 @@ export interface CsvParticipantRow {
 interface CsvImportModalProps {
   open: boolean;
   onClose: () => void;
-  event: ClubEvent;
-  onImport: (eventId: string, rows: CsvParticipantRow[]) => Promise<{ created: number; linked: number; skipped: number }>;
+  event?: ClubEvent;
+  onImport: (rows: CsvParticipantRow[]) => Promise<{ created: number; linked: number; skipped: number }>;
 }
 
 function parseCsvLine(line: string): string[] {
@@ -101,7 +101,7 @@ function downloadTemplate() {
   URL.revokeObjectURL(url);
 }
 
-export default function CsvImportModal({ open, onClose, event, onImport }: CsvImportModalProps) {
+export default function CsvImportModal({ open, onClose, event = undefined, onImport }: CsvImportModalProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<CsvParticipantRow[]>([]);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
@@ -148,7 +148,7 @@ export default function CsvImportModal({ open, onClose, event, onImport }: CsvIm
     if (!rows.length) return;
     setImporting(true);
     try {
-      const res = await onImport(event.id, rows);
+      const res = await onImport(rows);
       setResult(res);
       setRows([]);
       setFileName('');
@@ -162,7 +162,7 @@ export default function CsvImportModal({ open, onClose, event, onImport }: CsvIm
       open={open}
       onClose={handleClose}
       title="Import Participants"
-      subtitle={event.name}
+      subtitle={event?.name}
       size="md"
       footer={
         result ? (
@@ -206,17 +206,19 @@ export default function CsvImportModal({ open, onClose, event, onImport }: CsvIm
           <div className="rounded-xl bg-emeraldx-50 border border-emeraldx-200 px-4 py-4 space-y-1">
             <p className="text-sm font-semibold text-emeraldx-700">Import complete</p>
             <ul className="text-sm text-emeraldx-600 space-y-0.5 mt-1 list-disc list-inside">
-              <li>
-                {result.linked} participant{result.linked !== 1 ? 's' : ''} linked to this event
-              </li>
-              {result.created > 0 && (
-                <li>
-                  {result.created} new member{result.created !== 1 ? 's' : ''} created
-                </li>
+              {event ? (
+                <>
+                  <li>{result.linked} participant{result.linked !== 1 ? 's' : ''} linked to this event</li>
+                  {result.created > 0 && (
+                    <li>{result.created} new member{result.created !== 1 ? 's' : ''} created</li>
+                  )}
+                </>
+              ) : (
+                <li>{result.created} participant{result.created !== 1 ? 's' : ''} added</li>
               )}
               {result.skipped > 0 && (
                 <li className="text-slatey-400">
-                  {result.skipped} skipped (already linked or invalid)
+                  {result.skipped} skipped ({event ? 'already linked or invalid' : 'already exists or invalid'})
                 </li>
               )}
             </ul>

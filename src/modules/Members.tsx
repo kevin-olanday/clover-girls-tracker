@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Mail, Phone, Plus, Pencil, Trash2, Users, BadgeCheck } from 'lucide-react';
+import { Mail, Phone, Plus, Pencil, Trash2, Users, BadgeCheck, FileUp } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import MemberModal from '@/components/MemberModal';
+import CsvImportModal, { CsvParticipantRow } from '@/components/CsvImportModal';
 import { Member } from '@/lib/types';
 
 interface MembersProps {
@@ -9,12 +10,14 @@ interface MembersProps {
   saving: boolean;
   onSaveMember: (m: Partial<Member>, id?: string) => Promise<boolean>;
   onDeleteMember: (id: string) => Promise<boolean>;
+  onImportMembers: (rows: CsvParticipantRow[]) => Promise<{ created: number; linked: number; skipped: number }>;
 }
 
-export default function Members({ members, saving, onSaveMember, onDeleteMember }: MembersProps) {
+export default function Members({ members, saving, onSaveMember, onDeleteMember, onImportMembers }: MembersProps) {
   const [memberModal, setMemberModal] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [deleteMember, setDeleteMember] = useState<Member | null>(null);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
 
   const memberCount = members.length;
   const admins = useMemo(() => members.filter((m) => /admin/i.test(m.role || '')).length, [members]);
@@ -23,14 +26,6 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
   return (
     <div className="space-y-8">
       <section className="space-y-5">
-        <div className="overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-soft-sm">
-          <img
-            src="https://ih1.redbubble.net/image.5294122878.0092/pp,504x498-pad,600x600,f8f8f8.u5.jpg"
-            alt="Lucky Girls participants artwork"
-            className="h-32 w-full object-fill sm:h-44"
-          />
-        </div>
-
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-xl font-semibold font-display text-slatey-700">Participants</h2>
@@ -38,16 +33,25 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
               {memberCount} total participants · {admins} admins · {founders} founders
             </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingMember(null);
-              setMemberModal(true);
-            }}
-            className="btn-primary text-sm"
-          >
-            <Plus size={18} />
-            <span className="hidden sm:inline">Add Member</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCsvImportOpen(true)}
+              className="btn-outline text-sm"
+            >
+              <FileUp size={16} />
+              <span className="hidden sm:inline">Import CSV</span>
+            </button>
+            <button
+              onClick={() => {
+                setEditingMember(null);
+                setMemberModal(true);
+              }}
+              className="btn-primary text-sm"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">Add Member</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -186,6 +190,12 @@ export default function Members({ members, saving, onSaveMember, onDeleteMember 
           </div>
         </div>
       )}
+
+      <CsvImportModal
+        open={csvImportOpen}
+        onClose={() => setCsvImportOpen(false)}
+        onImport={onImportMembers}
+      />
     </div>
   );
 }

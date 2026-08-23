@@ -239,7 +239,7 @@ export default function Events({
           open={!!csvImportEvent}
           onClose={() => setCsvImportEvent(null)}
           event={csvImportEvent}
-          onImport={onImportParticipants}
+          onImport={(rows) => onImportParticipants(csvImportEvent.id, rows)}
         />
       )}
 

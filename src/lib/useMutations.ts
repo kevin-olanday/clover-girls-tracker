@@ -279,6 +279,62 @@ export function useMutations(reload: () => void) {
     [reload],
   );
 
+  const importMembers = useCallback(
+    async (
+      rows: Array<{ first_name: string; last_name: string; role: string; phone_number: string; email: string; notes: string }>,
+      existingMembers: Member[],
+    ): Promise<{ created: number; linked: number; skipped: number }> => {
+      if (!supabase) return { created: 0, linked: 0, skipped: rows.length };
+
+      let created = 0, skipped = 0;
+      const localMembers = [...existingMembers];
+
+      for (const row of rows) {
+        const exists = localMembers.find(
+          (m) =>
+            m.first_name.toLowerCase() === row.first_name.toLowerCase() &&
+            m.last_name.toLowerCase() === row.last_name.toLowerCase(),
+        );
+        if (exists) { skipped++; continue; }
+
+        const { data, error } = await supabase
+          .from('members')
+          .insert({
+            first_name: row.first_name,
+            last_name: row.last_name,
+            role: row.role || 'Member',
+            phone_number: row.phone_number || null,
+            email: row.email || null,
+            notes: row.notes || null,
+          })
+          .select('id')
+          .single();
+        if (error || !data) { skipped++; continue; }
+        created++;
+        localMembers.push({
+          id: (data as { id: string }).id,
+          first_name: row.first_name,
+          last_name: row.last_name,
+          role: row.role || 'Member',
+          phone_number: row.phone_number || null,
+          email: row.email || null,
+          notes: row.notes || null,
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      if (created > 0) {
+        toast.success(`${created} participant${created !== 1 ? 's' : ''} added`);
+      } else {
+        toast.error('No new participants were imported');
+      }
+
+      await reload();
+      return { created, linked: 0, skipped };
+    },
+    [reload],
+  );
+
   return {
     saving,
     saveEvent,
@@ -297,5 +353,6 @@ export function useMutations(reload: () => void) {
     saveEventMemberLink,
     deleteEventMemberLink,
     importEventParticipants,
+    importMembers,
   };
 }
