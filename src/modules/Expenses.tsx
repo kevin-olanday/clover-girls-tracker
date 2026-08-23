@@ -551,7 +551,7 @@ export default function Expenses({
                   <td className="px-3 py-3 text-slatey-400 text-xs hidden md:table-cell">
                     {(e as any).quantity_details || '—'}
                   </td>
-                  <td className="px-3 py-3 text-right text-slatey-500 hidden xs:table-cell">{formatCurrency(e.estimated_cost)}</td>
+                  <td className="px-3 py-3 text-right text-slatey-400 font-medium hidden xs:table-cell">{formatCurrency(e.estimated_cost)}</td>
                   <td className="px-3 py-3 text-right font-semibold text-slatey-700">
                     <div className="flex items-center justify-end gap-1.5">
                       {formatCurrency(e.actual_cost)}
@@ -561,6 +561,9 @@ export default function Expenses({
                         </a>
                       )}
                     </div>
+                    <p className="mt-0.5 text-[11px] font-medium text-slatey-400 xs:hidden">
+                      Est. {formatCurrency(e.estimated_cost)}
+                    </p>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-0.5">
