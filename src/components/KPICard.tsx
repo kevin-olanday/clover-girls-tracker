@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import MetricTooltip from '@/components/MetricTooltip';
 
 interface KPICardProps {
   label: string;
@@ -7,6 +8,8 @@ interface KPICardProps {
   icon: ReactNode;
   accent?: 'sage' | 'coral' | 'emerald' | 'slate';
   trend?: { value: string; positive: boolean };
+  tooltip?: { english: string; tagalog: string };
+  language?: 'en' | 'tl';
 }
 
 const accents = {
@@ -23,6 +26,8 @@ export default function KPICard({
   icon,
   accent = 'sage',
   trend,
+  tooltip,
+  language = 'en',
 }: KPICardProps) {
   const a = accents[accent];
   return (
@@ -40,8 +45,11 @@ export default function KPICard({
       <p className="mt-3 sm:mt-4 text-xl sm:text-2xl font-bold font-display text-slatey-700 tracking-tight">
         {value}
       </p>
-      <p className="text-xs sm:text-sm text-slatey-400 mt-1">{label}</p>
-      {sublabel && <p className="hidden sm:block text-xs text-slatey-300 mt-1">{sublabel}</p>}
+      <div className="mt-1 flex items-center gap-1">
+        <p className="text-xs sm:text-sm text-slatey-400">{label}</p>
+        {tooltip && <MetricTooltip {...tooltip} language={language} />}
+      </div>
+      {sublabel && <p className="text-[10px] leading-3 sm:text-xs text-slatey-300 mt-1">{sublabel}</p>}
     </div>
   );
 }

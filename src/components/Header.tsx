@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Clover, HelpCircle, Plus, Wifi, WifiOff, LogOut } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface HeaderProps {
   connection: 'connecting' | 'connected' | 'error';
@@ -12,6 +13,10 @@ interface HeaderProps {
 }
 
 export default function Header({ connection, onNewEvent, onSecret, onHelp, user, onSignOut }: HeaderProps) {
+  const { language } = useLanguage();
+  const labels = language === 'tl'
+    ? { subtitle: 'Event & Finance Manager', help: 'Paano', connected: 'Nakakonekta', connectionError: 'May error sa koneksyon', connecting: 'Kumokonekta…', newEvent: 'Bagong Event', signOut: 'Mag-sign out' }
+    : { subtitle: 'Event & Finance Manager', help: 'How to', connected: 'Connected', connectionError: 'Connection Error', connecting: 'Connecting…', newEvent: 'New Event', signOut: 'Sign out' };
   const connected = connection === 'connected';
   const tapCountRef = useRef(0);
   const lastTapRef = useRef(0);
@@ -53,7 +58,7 @@ export default function Header({ connection, onNewEvent, onSecret, onHelp, user,
                 Clover Girls Club
               </h1>
               <p className="text-xs text-slatey-400 mt-0.5 hidden sm:block">
-                Event & Finance Manager
+                {labels.subtitle}
               </p>
             </div>
           </div>
@@ -63,10 +68,10 @@ export default function Header({ connection, onNewEvent, onSecret, onHelp, user,
               type="button"
               onClick={onHelp}
               className="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slatey-600 shadow-soft transition hover:bg-cream-50"
-              aria-label="Open how-to guide"
+              aria-label={language === 'tl' ? 'Buksan ang gabay' : 'Open how-to guide'}
             >
               <HelpCircle size={14} />
-              <span className="hidden sm:inline">How to</span>
+              <span className="hidden sm:inline">{labels.help}</span>
             </button>
             <div
               className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold ${
@@ -80,12 +85,12 @@ export default function Header({ connection, onNewEvent, onSecret, onHelp, user,
             >
               {connected ? <Wifi size={14} /> : <WifiOff size={14} />}
               <span className="hidden sm:inline">
-                {connected ? 'Connected' : connection === 'error' ? 'Connection Error' : 'Connecting…'}
+                {connected ? labels.connected : connection === 'error' ? labels.connectionError : labels.connecting}
               </span>
             </div>
             <button onClick={onNewEvent} className="btn-primary text-sm">
               <Plus size={18} />
-              <span className="hidden sm:inline">New Event</span>
+              <span className="hidden sm:inline">{labels.newEvent}</span>
             </button>
             {user && onSignOut && (
               <div className="flex items-center gap-2 pl-1 border-l border-cream-200">
@@ -95,7 +100,7 @@ export default function Header({ connection, onNewEvent, onSecret, onHelp, user,
                 <button
                   type="button"
                   onClick={onSignOut}
-                  title="Sign out"
+                  title={labels.signOut}
                   className="rounded-full p-1.5 text-slatey-400 hover:bg-cream-100 hover:text-coral-500 transition"
                 >
                   <LogOut size={16} />

@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { DollarSign, TrendingDown, TrendingUp, Users, AlertTriangle, CalendarDays, MapPin, Receipt, Tag } from 'lucide-react';
+import { Banknote, TrendingDown, TrendingUp, Users, AlertTriangle, CalendarDays, MapPin, Receipt, Tag } from 'lucide-react';
 import KPICard from '@/components/KPICard';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
 import { ClubEvent, Expense, Venue, IncomeRecord, calcEvent } from '@/lib/types';
 import { formatCurrency, formatDate, isUpcoming, daysUntil } from '@/lib/format';
+import MetricTooltip from '@/components/MetricTooltip';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface DashboardProps {
   events: ClubEvent[];
@@ -55,24 +57,30 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
 
   const profitPerFounder = netProfit / 3;
   const [showProfitSplit, setShowProfitSplit] = useState(false);
+  const { language } = useLanguage();
 
   return (
     <div className="space-y-6">
+      <h2 className="text-xl font-semibold font-display text-slatey-700">Dashboard</h2>
       {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard
-          label="Total Revenue"
+          label={language === 'tl' ? 'Kabuuang Kita' : 'Total Revenue'}
           value={formatCurrency(totalRevenue)}
-          sublabel="From all event registrations"
-          icon={<DollarSign size={22} />}
+          sublabel={language === 'tl' ? 'Mula sa lahat ng pagpaparehistro' : 'From all event registrations'}
+          icon={<Banknote size={22} />}
           accent="sage"
+          language={language}
+          tooltip={{ english: 'Money collected from all event registration payments.', tagalog: 'Kabuuang perang nakolekta mula sa bayad sa pagpaparehistro ng mga event.' }}
         />
         <KPICard
-          label="Total Expenses"
+          label={language === 'tl' ? 'Kabuuang Gastos' : 'Total Expenses'}
           value={formatCurrency(totalExpenses)}
-          sublabel="Procurement + venue rentals"
+          sublabel={language === 'tl' ? 'Mga binili at upa sa venue' : 'Procurement + venue rentals'}
           icon={<TrendingDown size={22} />}
           accent="coral"
+          language={language}
+          tooltip={{ english: 'Total money spent on supplies, purchases, and venue rentals.', tagalog: 'Kabuuang perang ginastos sa mga gamit, binili, at upa sa venue.' }}
         />
 
         {/* Net Profit — click to reveal per-founder split */}
@@ -104,8 +112,15 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
             <p className="mt-4 text-2xl font-bold font-display text-slatey-700 tracking-tight">
               {formatCurrency(netProfit)}
             </p>
-            <p className="text-sm text-slatey-400 mt-1">Net Profit</p>
-            <p className="text-xs text-slatey-300 mt-1">{margin.toFixed(1)}% margin</p>
+            <div className="mt-1 flex items-center gap-1">
+              <p className="text-sm text-slatey-400">{language === 'tl' ? 'Netong Kita' : 'Net Profit'}</p>
+              <MetricTooltip
+                language={language}
+                english="Revenue minus all recorded expenses. Tap the card to see the founder split."
+                tagalog="Kita na ibinawas ang lahat ng naitalang gastos. I-tap ang card para makita ang hatian ng founders."
+              />
+            </div>
+            <p className="text-xs text-slatey-300 mt-1">{margin.toFixed(1)}% {language === 'tl' ? 'margin' : 'margin'}</p>
           </button>
 
           {showProfitSplit && (
@@ -127,11 +142,13 @@ export default function Dashboard({ events, expenses, venues, income }: Dashboar
           )}
         </div>
         <KPICard
-          label="Registration Fill Rate"
+          label={language === 'tl' ? 'Porsiyento ng Kalahok' : 'Registration Fill Rate'}
           value={`${fillRate.toFixed(0)}%`}
-          sublabel={`${totalRegistered} / ${totalCapacity} spots filled`}
+          sublabel={language === 'tl' ? `${totalRegistered} / ${totalCapacity} puwesto ang napunan` : `${totalRegistered} / ${totalCapacity} spots filled`}
           icon={<Users size={22} />}
           accent="slate"
+          language={language}
+          tooltip={{ english: 'The percentage of available event seats that are currently registered.', tagalog: 'Porsiyento ng mga available na upuan sa event na may nakarehistrong participant.' }}
         />
       </div>
 
